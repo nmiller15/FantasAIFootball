@@ -1,4 +1,4 @@
-name: Deploy Mosaic
+name: Deploy FantasAIFootball Jobs
 
 on:
   push:
