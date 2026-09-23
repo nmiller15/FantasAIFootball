@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 using FantasAIFootball.Models;
 using FantasAIFootball.Models.League;
@@ -50,25 +52,40 @@ public class LeagueRepository
             Console.Write($"GET {_httpClient.BaseAddress}{request.RequestUri}");
         }
 
-        var response = await _httpClient.SendAsync(request);
-
-        if (_debug)
+        for (var attempt = 0; attempt < 5; attempt++)
         {
-            Console.Write(" - ");
-            if (response.IsSuccessStatusCode)
+            var response = await _httpClient.SendAsync(request);
+
+            if (_debug)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(" - ");
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.WriteLine(response.StatusCode);
+                Console.ResetColor();
             }
-            else
+
+            if (response.StatusCode != HttpStatusCode.TooManyRequests)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
+                response.EnsureSuccessStatusCode();
+                return response;
             }
-            Console.WriteLine(response.StatusCode);
-            Console.ResetColor();
+
+            var delay = response.Headers?.RetryAfter?.Delta
+                ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
+
+            response.Dispose();
+
+            await Task.Delay(delay);
         }
 
-        response.EnsureSuccessStatusCode();
-        return response;
+        throw new UnreachableException();
     }
 
     public async Task<League?> GetLeague()
