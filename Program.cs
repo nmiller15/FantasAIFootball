@@ -1,5 +1,8 @@
 ﻿using FantasAIFootball.Extensions;
+using FantasAIFootball.Models.Email;
+using FantasAIFootball.Repositories;
 using FantasAIFootball.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -70,6 +73,12 @@ public class Program
         }
         catch (Exception ex)
         {
+            var emailRepository = app.Services.GetRequiredService<EmailRepository>();
+            var config = app.Services.GetRequiredService<IConfiguration>();
+            var to = config["to"];
+            var from = config["from"];
+            var subject = $"ERROR executing task {matchingTask.Name}: {ex.Message}";
+
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"ERROR executing task {matchingTask.Name}: {ex.Message}");
 
@@ -87,6 +96,16 @@ public class Program
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine(ex.Message);
             Console.ResetColor();
+
+            var email = new Email
+            {
+                To = to,
+                From = from,
+                Subject = subject,
+                Body = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}"
+            };
+
+            await emailRepository.SendEmail(email);
         }
     }
 }
