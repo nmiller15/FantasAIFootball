@@ -152,5 +152,25 @@ public static class AgentExtensions
                 Required = ["url"]
             }
         });
+
+        agent.AddTool(new Function
+        {
+            Name = "GetMemories",
+            Description = "Gets stored memories for the current user in the league. Returns an array of Memory."
+        });
+
+        agent.AddTool(new Function
+        {
+            Name = "AddMemory",
+            Description = "Stores a new memory for the current user in the league. Returns a success message.",
+            Parameters = new FunctionParameters
+            {
+                Properties = new()
+                {
+                    ["content"] = new FunctionParameter { Type = "string", Description = "The content of the memory to store." }
+                },
+                Required = ["content"]
+            }
+        });
     }
 }

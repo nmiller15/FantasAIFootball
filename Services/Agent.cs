@@ -97,6 +97,21 @@ public class Agent
                         break;
 
                     case ThoughtStep thought:
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "));
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.WriteLine("Model thinking... ");
+
+                        if (thought.Summary != null)
+                        {
+                            foreach (var content in thought.Summary.Where(c => c != null))
+                            {
+                                Console.ForegroundColor = ConsoleColor.White;
+                                Console.Write("Thought: ");
+                                Console.ForegroundColor = ConsoleColor.DarkGray;
+                                Console.WriteLine(content.Text);
+                            }
+                        }
                         break;
 
                     default:

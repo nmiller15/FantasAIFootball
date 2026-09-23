@@ -94,8 +94,9 @@ public static class ApplicationBuilderExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddSingleton<LeagueRepository>();
         services.AddSingleton<EmailRepository>();
+        services.AddSingleton<LeagueRepository>();
+        services.AddSingleton<MemoryRepository>();
         services.AddSingleton<WebSearchRepository>();
         services.AddSingleton<InteractionsRepository>();
         services.AddSingleton<PromptRepository>();

@@ -10,7 +10,6 @@ public class PlayerCache
     private readonly string _dbName = "cache.db";
     private readonly string _connectionString;
 
-
     public PlayerCache()
     {
         var userAppData = UserData.GetAppDataLocation();

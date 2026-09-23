@@ -24,6 +24,7 @@ Include a section covering games to watch this weekend from a fantasy-football p
 + Take my roster into account when selecting which games and players to highlight.
 + Explain what to watch for and why it could matter to my fantasy team.
 + Distinguish confirmed information from situations that are still uncertain.
++ Recall any players or storylines you flagged in stored memories that are relevant this week, and persist any new multi-week storyline worth carrying into future runs.
 
 ### Browns
 

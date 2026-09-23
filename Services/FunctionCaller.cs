@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
 
@@ -7,11 +8,13 @@ public class FunctionService
 {
     private readonly LeagueRepository _leagueRepository;
     private readonly WebSearchRepository _webSearchRepository;
+    private readonly MemoryRepository _memoryRepository;
 
-    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository)
+    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository)
     {
         _leagueRepository = leagueRepository;
         _webSearchRepository = webSearchRepository;
+        _memoryRepository = memoryRepository;
     }
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
@@ -157,6 +160,21 @@ public class FunctionService
                         ? FunctionResultStep.Failure(call, "No scrape results found for the provided URLs.")
                         : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(scrapeResult));
 
+                case "GetMemories":
+                    var memories = await _memoryRepository.GetMemories();
+                    return memories == null
+                        ? FunctionResultStep.Failure(call, "Could not retrieve memories due to an internal error.")
+                        : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(memories));
+
+                case "AddMemory":
+                    if (!call.Arguments.TryGetProperty("content", out var contentElement) || contentElement.ValueKind != System.Text.Json.JsonValueKind.String)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'content' argument.");
+                    }
+
+                    await _memoryRepository.AddMemory(contentElement.GetString());
+                    return FunctionResultStep.Success(call, "Memory added successfully.");
+
                 default:
                     return FunctionResultStep.Failure(call, $"Function '{call.Name}' does not exist.");
             }
@@ -170,9 +188,28 @@ public class FunctionService
     private void Log(FunctionCallStep call)
     {
         Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "));
         Console.Write("Function call: ");
         Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine(call.Name);
+        Console.Write(call.Name);
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("(");
+        if (call.Arguments.GetPropertyCount() > 0)
+        {
+            var first = true;
+            foreach (var prop in call.Arguments.EnumerateObject())
+            {
+                if (!first)
+                {
+                    Console.Write(", ");
+
+                }
+                Console.Write($"{prop.Name}: {prop.Value}");
+                first = false;
+            }
+        }
+        Console.Write(")");
+        Console.WriteLine();
         Console.ResetColor();
     }
 }
