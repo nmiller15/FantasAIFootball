@@ -1,0 +1,12 @@
+Please review my lineup for Thursday night games and identify any changes I should make before those games begin.
+
++ Review my current lineup, bench, injuries, player news, expected roles, matchups, and game conditions.
++ Recommend only actionable changes supported by meaningful current information.
++ Pay particular attention to players whose games occur before Sunday, since they cannot be moved once their games begin.
++ For each recommendation, write a single bullet point with the change and one sentence or less explaining why.
++ Consider whether making an early change unnecessarily limits my flexibility for Sunday.
++ If no change is warranted, say so.
+
+Example:
+
++ Start Player B over Player A. Player B has a secure workload and Player A's role is uncertain due to his injury.

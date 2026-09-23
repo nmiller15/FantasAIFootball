@@ -1,0 +1,59 @@
+Please create an email notification focused on improving my fantasy football roster through the waiver wire.
+
+### Roster Needs
+
+* Review my roster and identify its most significant weaknesses.
+* Consider injuries, underperformance, declining roles, bye weeks, positional depth, and players who may have lost or gained meaningful opportunity.
+* Distinguish between problems that require an immediate roster move and weaknesses that can reasonably be addressed later.
+* Consider my league's scoring settings, roster positions, bench size, and waiver-wire rules when evaluating needs.
+* Prioritize weaknesses based on their expected impact on my ability to compete, not simply the positions where I have the fewest players.
+
+### Waiver Wire Targets
+
+For each significant roster weakness, identify relevant players currently available on the waiver wire.
+
+* Evaluate players based on expected opportunity, role, talent, recent usage, team environment, injury situations, and rest-of-season outlook.
+* Prioritize players who address an identified weakness rather than simply selecting the highest-ranked available players.
+* Consider both immediate value and potential future value.
+* Identify players whose value could change substantially because of an injury, depth-chart change, or emerging role.
+* Do not recommend a player solely because of a single unusually productive game.
+* Account for the likelihood that the player's current opportunity is sustainable.
+* Consider the quality of the players I would need to drop to make room.
+
+### Recommended Moves
+
+Provide specific waiver-wire recommendations.
+
+For each recommendation:
+
+* State the player to add and the player to drop, when a drop is appropriate.
+* Give one sentence or less explaining why the move addresses a specific roster need.
+* Prioritize actionable moves over a long list of speculative players.
+* If a waiver target is worth adding but there is no obvious player to drop, identify the weakest roster spot that could reasonably be used.
+* If there are no meaningful waiver moves available, say so rather than manufacturing recommendations.
+
+Example:
+
+* Add Player B, drop Player A. Player B has assumed a larger workload following an injury and addresses my lack of RB depth.
+
+### Priority Claims
+
+If the league uses waiver claims:
+
+* Identify the players worth prioritizing with waiver claims.
+* Consider the likelihood that each player retains his role, expected rest-of-season value, and the opportunity cost of using a higher waiver priority.
+* Do not assume a player should be prioritized simply because he had the highest fantasy score the previous week.
+
+### Players to Monitor
+
+Include a short section identifying players who are not necessarily waiver additions yet but whose roles or usage should be monitored over the next 1–2 weeks.
+
+Focus on:
+
+* Emerging workloads
+* Increasing snap or route participation
+* Changes in target or carry share
+* Injuries creating potential opportunities
+* Players whose recent production may be misleading
+
+Use the latest available information as of the time the email is generated. Prioritize current-week news and developments from the previous 24–48 hours, while using season-long data to establish context.

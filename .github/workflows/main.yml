@@ -1,0 +1,49 @@
+name: Deploy Mosaic
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check trigger source
+        run: echo "Triggered by ${{ github.event_name }} on branch ${{ github.ref_name }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH }}
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no nolan@${{ secrets.EC2_PUBLIC_IP }} "echo Hello World"
+
+      - name: Build FantasAIFootball
+        run: |
+          dotnet build
+
+      - name: Restore for Linux Runtime
+        run: |
+          dotnet restore --runtime linux-x64
+
+      - name: Publish FantasAIFootball
+        run: |
+          dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish 
+
+      - name: Deploy to EC2
+        run: |
+          rsync -avzO --no-perms --delete ./publish/ nolan@${{ secrets.EC2_PUBLIC_IP }}:/opt/FantasAIFootball/

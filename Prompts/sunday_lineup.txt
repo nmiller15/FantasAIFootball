@@ -1,0 +1,35 @@
+Please create an email notification with suggested lineup changes for this Sunday.
+Use the latest available information as of the time the email is generated.
+Prioritize information from the current week, particularly developments from the previous 24–48 hours.
+
+### Suggested Lineup Changes
+
++ Review my current roster, available alternatives, injuries, expected roles, matchups, and other relevant current-week information.
++ Recommend only changes that are supported by meaningful evidence. Do not recommend a change simply because two players have different rankings or projections.
++ Consider the player's expected workload, recent usage, matchup, injury status, game environment, and relevant news.
++ Account for league scoring settings when evaluating players.
++ Be specific. Write all recommended changes as a single bullet point, with one sentence or less explaining each recommendation.
++ If no lineup change is warranted, explicitly state that no change is recommended.
+
+Example:
+
++ Replace Player A with Player B. Player A is injured and Player B has a favorable matchup this week.
+
+### Games to Watch
+
+Include a section covering games to watch this weekend from a fantasy-football perspective.
+
++ Highlight key matchups, players, injuries, usage questions, and other storylines that could have meaningful fantasy implications.
++ Prioritize games involving players on my roster or players who could directly affect my lineup decisions.
++ Take my roster into account when selecting which games and players to highlight.
++ Explain what to watch for and why it could matter to my fantasy team.
++ Distinguish confirmed information from situations that are still uncertain.
+
+### Browns
+
+Include a separate section about the Cleveland Browns matchup and storylines to watch. This section is not specifically about fantasy football.
+
++ Cover the opponent, key matchup dynamics, injuries, relevant player news, personnel changes, coaching decisions, and other team developments that could affect the outcome.
++ Focus on concrete, current information rather than generic season-long storylines.
++ Identify important individual matchups and developments to monitor during the game.
++ Do not frame this section around fantasy implications unless a fantasy-related development is independently relevant to the Browns themselves.
