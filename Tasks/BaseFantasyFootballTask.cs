@@ -70,14 +70,24 @@ public class BaseFantasyFootballTask : ITask
         }
 
         var emailSubject = EmailSubject;
-        var emailBody = Markdown.ToHtml(
-                content +
-                "<hr>" +
-                "<br/>" +
-                "<div style=\"border: 1px solid gray; background-color: lightgray;\">" +
-                    capture.ToString() +
-                "<div>"
-        );
+
+        var contentHtml = Markdown.ToHtml(content);
+        var consoleHtml = System.Net.WebUtility.HtmlEncode(capture.ToString());
+
+        var emailBody =
+                contentHtml +
+                "<hr style=\"margin-top: 24px; border: none; border-top: 1px solid #ccc;\" />" +
+                "<div style=\"margin-top: 16px;\">" +
+                    "<h3 style=\"font-family: sans-serif; color: #333; margin-bottom: 8px;\">Console Output</h3>" +
+                    "<pre style=\"" +
+                        "background-color: #1e1e1e; color: #d4d4d4; " +
+                        "padding: 16px; border-radius: 6px; " +
+                        "font-family: 'Consolas', 'Menlo', monospace; font-size: 13px; " +
+                        "line-height: 1.4; overflow-x: auto; white-space: pre-wrap; " +
+                        "word-break: break-word;\">" +
+                        consoleHtml +
+                    "</pre>" +
+                "</div>";
 
         var email = new Email
         {
