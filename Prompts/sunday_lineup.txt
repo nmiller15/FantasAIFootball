@@ -2,6 +2,8 @@ Please create an email notification with suggested lineup changes for this Sunda
 Use the latest available information as of the time the email is generated.
 Prioritize information from the current week, particularly developments from the previous 24–48 hours.
 
+Before forming this week's advice, call `GetRecommendations` to review the lineup calls you made in prior weeks and whether they worked out. As you finalize each actionable lineup change below, record it with `AddRecommendation` (player name, direction, reason, and a confidence between 0 and 1).
+
 ### Suggested Lineup Changes
 
 + Review my current roster, available alternatives, injuries, expected roles, matchups, and other relevant current-week information.

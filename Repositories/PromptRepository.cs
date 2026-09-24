@@ -1,4 +1,5 @@
 using FantasAIFootball.Models.League;
+using FantasAIFootball.Models.Memories;
 using FantasAIFootball.Models.Search;
 using FantasAIFootball.Utilities;
 
@@ -33,7 +34,9 @@ public class PromptRepository
             typeof(User),
             typeof(NflState),
             typeof(QueryResult),
-            typeof(ExtractResult));
+            typeof(ExtractResult),
+            typeof(Memory),
+            typeof(Recommendation));
 
         var systemInstruction = await File.ReadAllTextAsync(path);
 

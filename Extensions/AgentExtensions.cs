@@ -172,5 +172,29 @@ public static class AgentExtensions
                 Required = ["content"]
             }
         });
+
+        agent.AddTool(new Function
+        {
+            Name = "GetRecommendations",
+            Description = "Gets previous recommendations made by this agent to the current user. Returns an array of Recommendation."
+        });
+
+        agent.AddTool(new Function
+        {
+            Name = "AddRecommendation",
+
+            Description = "Stores a new recommendation made by this agent to the current user. Returns a success message.",
+            Parameters = new FunctionParameters
+            {
+                Properties = new()
+                {
+                    ["playerName"] = new FunctionParameter { Type = "string", Description = "The full, human-readable name of the player the recommendation is about (e.g. 'Bijan Robinson')." },
+                    ["direction"] = new FunctionParameter { Type = "string", Description = "A short description of what to do with the player. i.e. 'drop for Player A' 'add and drop Player B' 'start at QB' 'sit and replace with Player C'" },
+                    ["reason"] = new FunctionParameter { Type = "string", Description = "Reason why recommendation is warranted." },
+                    ["confidence"] = new FunctionParameter { Type = "number", Description = "Estimated score of confidence of positive outcome. Value between 0 and 1" }
+                },
+                Required = ["playerName", "direction", "reason", "confidence"]
+            }
+        });
     }
 }

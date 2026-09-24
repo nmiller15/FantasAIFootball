@@ -1,5 +1,7 @@
 Please create an email notification focused on improving my fantasy football roster through the waiver wire.
 
+Before forming this week's advice, call `GetRecommendations` to review the waiver and roster moves you advised in prior weeks, and note whether those calls have worked out. As you finalize each actionable recommendation below, record it with `AddRecommendation` (player name, direction, reason, and a confidence between 0 and 1).
+
 ### Roster Needs
 
 * Review my roster and identify its most significant weaknesses.

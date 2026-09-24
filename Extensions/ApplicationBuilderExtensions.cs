@@ -100,6 +100,7 @@ public static class ApplicationBuilderExtensions
         services.AddSingleton<WebSearchRepository>();
         services.AddSingleton<InteractionsRepository>();
         services.AddSingleton<PromptRepository>();
+        services.AddSingleton<RecommendationRepository>();
 
         return services;
     }

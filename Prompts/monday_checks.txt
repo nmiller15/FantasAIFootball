@@ -6,6 +6,7 @@ Please review my lineup for Monday night games and identify any changes I should
 + For each recommendation, write a single bullet point with the change and one sentence or less explaining why.
 + Consider whether making an early change unnecessarily limits my flexibility for Sunday.
 + Consult stored memories for any players or situations you previously flagged that are relevant before these games.
++ Call `GetRecommendations` to review your prior lineup calls, and record any actionable change you recommend here with `AddRecommendation` (player name, direction, reason, and a confidence between 0 and 1).
 + If no change is warranted, say so.
 
 Example:

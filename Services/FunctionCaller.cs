@@ -9,12 +9,14 @@ public class FunctionService
     private readonly LeagueRepository _leagueRepository;
     private readonly WebSearchRepository _webSearchRepository;
     private readonly MemoryRepository _memoryRepository;
+    private readonly RecommendationRepository _recommendationRepository;
 
-    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository)
+    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository, RecommendationRepository recommendationRepository)
     {
         _leagueRepository = leagueRepository;
         _webSearchRepository = webSearchRepository;
         _memoryRepository = memoryRepository;
+        _recommendationRepository = recommendationRepository;
     }
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
@@ -174,6 +176,40 @@ public class FunctionService
 
                     await _memoryRepository.AddMemory(contentElement.GetString());
                     return FunctionResultStep.Success(call, "Memory added successfully.");
+
+                case "GetRecommendations":
+                    var recommendations = await _recommendationRepository.GetRecommendations();
+                    return recommendations == null
+                        ? FunctionResultStep.Failure(call, "Could not retrieve recommendations due to an internal error.")
+                        : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(recommendations));
+
+                case "AddRecommendation":
+                    if (!call.Arguments.TryGetProperty("playerName", out var reccPlayerNameElement) || reccPlayerNameElement.ValueKind != System.Text.Json.JsonValueKind.String)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'playerName' argument.");
+                    }
+                    if (!call.Arguments.TryGetProperty("direction", out var directionElement) || directionElement.ValueKind != System.Text.Json.JsonValueKind.String)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'direction' argument.");
+                    }
+                    if (!call.Arguments.TryGetProperty("reason", out var reasonElement) || reasonElement.ValueKind != System.Text.Json.JsonValueKind.String)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'reason' argument.");
+                    }
+                    if (!call.Arguments.TryGetProperty("confidence", out var confidenceElement) || confidenceElement.ValueKind != System.Text.Json.JsonValueKind.Number ||
+                            confidenceElement.GetDouble() < 0 || confidenceElement.GetDouble() > 1)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'confidence' argument.");
+                    }
+
+                    await _recommendationRepository.AddRecommendation(
+                        reccPlayerNameElement.GetString(),
+                        directionElement.GetString(),
+                        reasonElement.GetString(),
+                        confidenceElement.GetDouble()
+                    );
+
+                    return FunctionResultStep.Success(call, "Recommendation added successfully.");
 
                 default:
                     return FunctionResultStep.Failure(call, $"Function '{call.Name}' does not exist.");

@@ -105,6 +105,19 @@ You have access to two memory tools, `GetMemories` and `AddMemory`, that persist
 + Write each memory as a concise, self-contained statement, and include a relevant timeframe when it matters (e.g., "over the next 2-3 weeks").
 + Before adding a memory, review the memories you already retrieved and avoid storing duplicates of information already captured.
 
+## Recommendation History
+
+You have access to two recommendation tools, `GetRecommendations` and `AddRecommendation`, that persist the concrete, player-level advice you have given this specific league and user across runs. Where memories capture broader season-long context, recommendations are the running log of the specific actions you told the user to take (start/sit, add/drop, waiver claims).
+
++ At the start of every run, call `GetRecommendations` to review what you advised in prior weeks. Use it to follow up on earlier advice, note whether previous recommendations played out well or poorly, avoid contradicting yourself without a clear reason, and stay consistent with the direction you have been guiding the team.
++ Whenever you make a concrete, actionable recommendation about a specific player (starting, sitting, adding, dropping, or claiming), record it with `AddRecommendation`, providing:
+  + `playerName`: the full, human-readable player name (e.g. "Bijan Robinson"). Do NOT store an id; recommendations must be readable on their own.
+  + `direction`: a short description of the action (e.g. "start at RB2", "drop for Player A", "add off waivers and drop Player B", "sit and replace with Player C").
+  + `reason`: a concise justification for the recommendation.
+  + `confidence`: your estimated probability of a positive outcome, a value between 0 and 1.
++ Record a recommendation for each distinct actionable call you make in a run. Do not record vague observations, players to merely monitor, or non-actionable commentary; those belong in memories if they are worth persisting at all.
++ When reviewing prior recommendations, treat them as your own track record: reference relevant past calls when they inform the current decision, and explain when and why you are reversing an earlier recommendation.
+
 ## Tools and models
 
 Tool results are returned as JSON conforming to these models (field: type).
