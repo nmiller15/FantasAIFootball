@@ -10,6 +10,7 @@ namespace FantasAIFootball.Tasks;
 public class BaseFantasyFootballTask : ITask
 {
     protected readonly Agent _agent;
+    protected readonly LeagueRepository _leagueRepository;
     protected readonly PromptRepository _promptRepository;
     protected readonly EmailRepository _emailRepository;
 
@@ -20,7 +21,7 @@ public class BaseFantasyFootballTask : ITask
     public string PromptName { get; set; }
     public string EmailSubject { get; set; }
 
-    public BaseFantasyFootballTask(Agent agent, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
+    public BaseFantasyFootballTask(Agent agent, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
     {
         _agent = agent;
         _promptRepository = promptRepository;

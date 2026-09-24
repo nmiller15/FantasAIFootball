@@ -8,10 +8,11 @@ public class TuesdayWaiverTask : BaseFantasyFootballTask
 {
     public override string Name => nameof(TuesdayWaiverTask);
 
-    public TuesdayWaiverTask(Agent agent, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
-        : base(agent, promptRepository, emailRepository, configuration)
+    public TuesdayWaiverTask(Agent agent, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
+        : base(agent, leagueRepository, promptRepository, emailRepository, configuration)
     {
+        var league = leagueRepository.GetLeague().GetAwaiter().GetResult();
+        EmailSubject = $"{league?.Name ?? "Unknown league"} - Waiver Wire Recommendations";
         PromptName = "tuesday_waivers";
-        EmailSubject = "Waiver Wire Recommendations";
     }
 }

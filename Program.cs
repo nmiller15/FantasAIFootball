@@ -21,9 +21,17 @@ public class Program
 
         builder.Services.AddTasks();
 
-        var app = builder.Build();
-
         var firstArg = args.FirstOrDefault();
+        if (args.Length > 1)
+        {
+            var leagueId = args[1];
+            if (!string.IsNullOrEmpty(leagueId))
+            {
+                builder.Configuration["leagueId"] = leagueId;
+            }
+        }
+
+        var app = builder.Build();
 
         var tasks = app.Services.GetRequiredService<IEnumerable<ITask>>();
 
