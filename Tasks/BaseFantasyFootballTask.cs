@@ -2,6 +2,7 @@ using FantasAIFootball.Extensions;
 using FantasAIFootball.Models.Email;
 using FantasAIFootball.Repositories;
 using FantasAIFootball.Services;
+using FantasAIFootball.Utilities;
 using Markdig;
 using Microsoft.Extensions.Configuration;
 
@@ -33,6 +34,12 @@ public class BaseFantasyFootballTask : ITask
 
     public async Task Execute()
     {
+        var output = Console.Out;
+        var capture = new StringWriter();
+
+        var teeWriter = new TeeWriter(output, capture);
+        Console.SetOut(teeWriter);
+
         var systemInstruction = await _promptRepository.GetSystemInstruction();
         if (string.IsNullOrEmpty(systemInstruction))
         {
@@ -63,7 +70,14 @@ public class BaseFantasyFootballTask : ITask
         }
 
         var emailSubject = EmailSubject;
-        var emailBody = Markdown.ToHtml(content);
+        var emailBody = Markdown.ToHtml(
+                content +
+                "<hr>" +
+                "<br/>" +
+                "<div style=\"border: 1px solid gray; background-color: lightgray;\">" +
+                    capture.ToString() +
+                "<div>"
+        );
 
         var email = new Email
         {
