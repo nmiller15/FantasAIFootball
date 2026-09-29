@@ -5,6 +5,7 @@ using FantasAIFootball.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace FantasAIFootball;
 
@@ -12,6 +13,17 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
+        Log.Logger = new LoggerConfiguration()
+#if DEBUG
+            .MinimumLevel.Debug()
+#endif
+#if !DEBUG
+            .MinimumLevel.Information()
+#endif
+            .WriteTo.Console(
+                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Level:u3} {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
+
         var builder = Host.CreateApplicationBuilder(args);
 
         builder.LoadConfiguration();
@@ -69,15 +81,7 @@ public class Program
         {
             await matchingTask.Execute();
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("SUCCESS");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write(" - ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(matchingTask.Name);
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(" executed successfully.");
-            Console.ResetColor();
+            Log.Information($"SUCCESS - {matchingTask.Name} executed successfully.");
         }
         catch (Exception ex)
         {
@@ -87,23 +91,7 @@ public class Program
             var from = config["from"];
             var subject = $"ERROR executing task {matchingTask.Name}: {ex.Message}";
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"ERROR executing task {matchingTask.Name}: {ex.Message}");
-
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("ERROR");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write(" - ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(matchingTask.Name);
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(" could not be executed.");
-
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("Message: ");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(ex.Message);
-            Console.ResetColor();
+            Log.Error(ex, $"ERROR executing task {matchingTask.Name}: {ex.Message}");
 
             var email = new Email
             {
@@ -114,6 +102,8 @@ public class Program
             };
 
             await emailRepository.SendEmail(email);
+
+            Log.CloseAndFlush();
         }
     }
 }

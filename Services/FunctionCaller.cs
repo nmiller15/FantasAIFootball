@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
+using Serilog;
 
 namespace FantasAIFootball.Services;
 
@@ -21,7 +22,7 @@ public class FunctionService
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
     {
-        Log(call);
+        LogCall(call);
         try
         {
             switch (call.Name)
@@ -221,31 +222,12 @@ public class FunctionService
         }
     }
 
-    private void Log(FunctionCallStep call)
+    private void LogCall(FunctionCallStep call)
     {
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "));
-        Console.Write("Function call: ");
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.Write(call.Name);
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write("(");
-        if (call.Arguments.GetPropertyCount() > 0)
-        {
-            var first = true;
-            foreach (var prop in call.Arguments.EnumerateObject())
-            {
-                if (!first)
-                {
-                    Console.Write(", ");
+        var arguments = string.Join(", ",
+            call.Arguments.EnumerateObject()
+                .Select(prop => $"{prop.Name}: {prop.Value}"));
 
-                }
-                Console.Write($"{prop.Name}: {prop.Value}");
-                first = false;
-            }
-        }
-        Console.Write(")");
-        Console.WriteLine();
-        Console.ResetColor();
+        Log.Information("Function call: {FunctionName}({Arguments})", call.Name, arguments);
     }
 }

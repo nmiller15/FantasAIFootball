@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FantasAIFootball.Models.Search;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace FantasAIFootball.Repositories;
 
@@ -9,12 +10,9 @@ public class WebSearchRepository
 {
     private readonly HttpClient _httpClient;
 
-    private readonly bool _debug;
-
     public WebSearchRepository(IConfiguration configuration)
     {
         var tavilyKey = configuration.GetValue<string>("tavilyKey") ?? throw new Exception("Tavily API key is not set. Please set the 'tavilyKey' in your configuration.");
-        _debug = configuration.GetValue("debug", false);
 
         _httpClient = new HttpClient()
         {
@@ -33,26 +31,17 @@ public class WebSearchRepository
             Content = JsonContent.Create(body)
         };
 
-        if (_debug)
-        {
-            Console.Write($"POST {_httpClient.BaseAddress}{request.RequestUri}");
-        }
+        Log.Debug($"POST {_httpClient.BaseAddress}{request.RequestUri}");
 
         var response = await _httpClient.SendAsync(request);
 
-        if (_debug)
+        if (response.IsSuccessStatusCode)
         {
-            Console.Write(" - ");
-            if (response.IsSuccessStatusCode)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-            Console.WriteLine(response.StatusCode);
-            Console.ResetColor();
+            Log.Information(" - {StatusCode}", response.StatusCode);
+        }
+        else
+        {
+            Log.Error(" - {StatusCode}", response.StatusCode);
         }
 
         response.EnsureSuccessStatusCode();

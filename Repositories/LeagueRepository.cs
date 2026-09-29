@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using FantasAIFootball.Models;
 using FantasAIFootball.Models.League;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace FantasAIFootball.Repositories;
 
@@ -14,7 +14,6 @@ public class LeagueRepository
 
     private readonly string _username;
     private readonly string _leagueId;
-    private readonly bool _debug;
 
     private string? _userId;
     private string UserId
@@ -23,6 +22,7 @@ public class LeagueRepository
         {
             if (_userId == null)
             {
+                Log.Information($"Fetching user ID for username {_username}");
                 var user = GetUser(_username).Result ?? throw new Exception($"User {_username} not found");
                 _userId = user.UserId;
             }
@@ -34,7 +34,6 @@ public class LeagueRepository
     {
         _username = configuration.GetValue<string>("username") ?? throw new Exception("Username is not set. Please set the 'username' in your configuration.");
         _leagueId = configuration.GetValue<string>("leagueId") ?? throw new Exception("League ID is not set. Please set the 'leagueId' in your configuration.");
-        _debug = configuration.GetValue("debug", false);
 
         _playerCache = playerCache;
         _httpClient = new HttpClient()
@@ -47,28 +46,19 @@ public class LeagueRepository
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
 
-        if (_debug)
-        {
-            Console.Write($"GET {_httpClient.BaseAddress}{request.RequestUri}");
-        }
+        Log.Debug($"GET {_httpClient.BaseAddress}{request.RequestUri}");
 
         for (var attempt = 0; attempt < 5; attempt++)
         {
             var response = await _httpClient.SendAsync(request);
 
-            if (_debug)
+            if (response.IsSuccessStatusCode)
             {
-                Console.Write(" - ");
-                if (response.IsSuccessStatusCode)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                Console.WriteLine(response.StatusCode);
-                Console.ResetColor();
+                Log.Information(" - {StatusCode}", response.StatusCode);
+            }
+            else
+            {
+                Log.Error(" - {StatusCode}", response.StatusCode);
             }
 
             if (response.StatusCode != HttpStatusCode.TooManyRequests)
@@ -82,6 +72,7 @@ public class LeagueRepository
 
             response.Dispose();
 
+            Log.Warning("Rate limited. Retrying in {Delay} seconds...", delay.TotalSeconds);
             await Task.Delay(delay);
         }
 
@@ -133,10 +124,12 @@ public class LeagueRepository
     public async Task<Player> GetPlayer(string playerId)
     {
         var cacheResult = await _playerCache.Get(playerId);
-        if (cacheResult != null && cacheResult.InsertedAt > DateTime.Now.AddDays(-1))
+        if (cacheResult != null && cacheResult.InsertedAt.Day > DateTime.Today.AddDays(-1).Day)
         {
             return JsonSerializer.Deserialize<Player>(cacheResult.Json);
         }
+
+        Log.Warning("Cache missed, last fetched at {InsertedAt} Fetching from API...", cacheResult?.InsertedAt);
 
         var response = await Get("players/nfl");
 
