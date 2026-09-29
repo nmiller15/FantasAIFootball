@@ -1,5 +1,6 @@
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
+using Serilog;
 
 namespace FantasAIFootball.Services;
 
@@ -97,10 +98,7 @@ public class Agent
                         break;
 
                     case ThoughtStep thought:
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss "));
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine("Model thinking... ");
+                        Log.Information("Model thinking...");
 
                         if (thought.Summary != null)
                         {

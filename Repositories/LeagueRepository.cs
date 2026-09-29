@@ -54,11 +54,11 @@ public class LeagueRepository
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information(" - {StatusCode}", response.StatusCode);
+                Log.Information("League: GET {Path} - {StatusCode}", path, response.StatusCode);
             }
             else
             {
-                Log.Error(" - {StatusCode}", response.StatusCode);
+                Log.Error("Leage: GET {Path} - {StatusCode}", path, response.StatusCode);
             }
 
             if (response.StatusCode != HttpStatusCode.TooManyRequests)

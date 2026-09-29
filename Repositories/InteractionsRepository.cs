@@ -55,11 +55,12 @@ public class InteractionsRepository
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information(" - {StatusCode}", response.StatusCode);
+                Log.Information("POST Interactions: {Path} - {StatusCode}", path, response.StatusCode);
             }
             else
             {
-                Log.Error(" - {StatusCode}\nERROR: {Response}",
+                Log.Error("POST Interactions: {Path} - {StatusCode}\nERROR: {Response}",
+                    path,
                     response.StatusCode,
                     await response.Content.ReadAsStringAsync());
             }

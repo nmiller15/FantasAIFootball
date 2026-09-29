@@ -37,11 +37,11 @@ public class WebSearchRepository
 
         if (response.IsSuccessStatusCode)
         {
-            Log.Information(" - {StatusCode}", response.StatusCode);
+            Log.Information("POST Tavily: {Path} - {StatusCode}", path, response.StatusCode);
         }
         else
         {
-            Log.Error(" - {StatusCode}", response.StatusCode);
+            Log.Error("POST Tavily: {Path} - {StatusCode}", path, response.StatusCode);
         }
 
         response.EnsureSuccessStatusCode();
