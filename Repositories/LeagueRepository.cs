@@ -46,7 +46,7 @@ public class LeagueRepository
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
 
-        Log.Debug($"GET {_httpClient.BaseAddress}{request.RequestUri}");
+        Log.Debug($"get {_httpClient.BaseAddress}{request.RequestUri}");
 
         for (var attempt = 0; attempt < 5; attempt++)
         {
@@ -54,11 +54,11 @@ public class LeagueRepository
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information("League: GET {Path} - {StatusCode}", path, response.StatusCode);
+                Log.Information("League: get {Path} - {StatusCode}", path, response.StatusCode);
             }
             else
             {
-                Log.Error("Leage: GET {Path} - {StatusCode}", path, response.StatusCode);
+                Log.Error("League: get {Path} - {StatusCode}", path, response.StatusCode);
             }
 
             if (response.StatusCode != HttpStatusCode.TooManyRequests)

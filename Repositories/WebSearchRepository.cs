@@ -31,17 +31,17 @@ public class WebSearchRepository
             Content = JsonContent.Create(body)
         };
 
-        Log.Debug($"POST {_httpClient.BaseAddress}{request.RequestUri}");
+        Log.Debug($"post {_httpClient.BaseAddress}{request.RequestUri}");
 
         var response = await _httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
         {
-            Log.Information("POST Tavily: {Path} - {StatusCode}", path, response.StatusCode);
+            Log.Information("post Tavily: {Path} - {StatusCode}", path, response.StatusCode);
         }
         else
         {
-            Log.Error("POST Tavily: {Path} - {StatusCode}", path, response.StatusCode);
+            Log.Error("post Tavily: {Path} - {StatusCode}", path, response.StatusCode);
         }
 
         response.EnsureSuccessStatusCode();

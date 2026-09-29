@@ -47,7 +47,7 @@ public class InteractionsRepository
             Content = JsonContent.Create(body)
         };
 
-        Log.Debug($"POST {_httpClient.BaseAddress}{request.RequestUri}");
+        Log.Debug($"post {_httpClient.BaseAddress}{request.RequestUri}");
 
         for (var attempt = 0; attempt < 5; attempt++)
         {
@@ -55,11 +55,11 @@ public class InteractionsRepository
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information("POST Interactions: {Path} - {StatusCode}", path, response.StatusCode);
+                Log.Information("post Interactions: {Path} - {StatusCode}", path, response.StatusCode);
             }
             else
             {
-                Log.Error("POST Interactions: {Path} - {StatusCode}\nERROR: {Response}",
+                Log.Error("post Interactions: {Path} - {StatusCode}\nERROR: {Response}",
                     path,
                     response.StatusCode,
                     await response.Content.ReadAsStringAsync());

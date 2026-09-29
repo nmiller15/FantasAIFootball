@@ -228,6 +228,6 @@ public class FunctionService
             call.Arguments.EnumerateObject()
                 .Select(prop => $"{prop.Name}: {prop.Value}"));
 
-        Log.Information("Function call: {FunctionName}({Arguments})", call.Name, arguments);
+        Log.Information("<FUNCTION CALL> {FunctionName}({Arguments})", call.Name, arguments);
     }
 }
