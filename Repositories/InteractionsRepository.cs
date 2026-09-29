@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FantasAIFootball.Models.Interactions;
@@ -55,32 +56,48 @@ public class InteractionsRepository
             Console.Write($"POST {_httpClient.BaseAddress}{request.RequestUri}");
         }
 
-        var response = await _httpClient.SendAsync(request);
-
-        if (_debug)
+        for (var attempt = 0; attempt < 5; attempt++)
         {
-            Console.Write(" - ");
-            if (response.IsSuccessStatusCode)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-            Console.WriteLine(response.StatusCode);
-            Console.ResetColor();
+            var response = await _httpClient.SendAsync(request);
 
-            if (!response.IsSuccessStatusCode)
+            if (_debug)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("ERROR: ");
+                Console.Write(" - ");
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                Console.WriteLine(response.StatusCode);
                 Console.ResetColor();
-                Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("ERROR: ");
+                    Console.ResetColor();
+                    Console.WriteLine(await response.Content.ReadAsStringAsync());
+                }
+
             }
+
+            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests)
+            {
+                response.EnsureSuccessStatusCode();
+                return response;
+            }
+
+            var delay = response.Headers?.RetryAfter?.Delta
+                ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
+
+            response.Dispose();
+
+            await Task.Delay(delay);
         }
 
-        response.EnsureSuccessStatusCode();
-        return response;
+        throw new UnreachableException();
     }
 }
