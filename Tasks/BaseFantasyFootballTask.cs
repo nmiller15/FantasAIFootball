@@ -25,12 +25,25 @@ public class BaseFantasyFootballTask : ITask
     public BaseFantasyFootballTask(Agent agent, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
     {
         _agent = agent;
+        _leagueRepository = leagueRepository;
         _promptRepository = promptRepository;
         _emailRepository = emailRepository;
 
         _emailTo = configuration["to"] ?? throw new Exception("'to' not found in configuration");
         _emailFrom = configuration["from"] ?? throw new Exception("'from' not found in configuration");
     }
+
+    /// <summary>
+    /// Returns the subject line for the report. Overridden by tasks whose subject
+    /// depends on runtime state, such as the current day.
+    /// </summary>
+    public virtual string BuildSubject() => EmailSubject;
+
+    /// <summary>
+    /// Gives the task a chance to prepend runtime context to the prompt loaded from
+    /// Prompts before it is handed to the agent.
+    /// </summary>
+    protected virtual Task<string> ComposePromptAsync(string prompt) => Task.FromResult(prompt);
 
     public async Task Execute()
     {
@@ -55,7 +68,9 @@ public class BaseFantasyFootballTask : ITask
             throw new Exception("Prompt not found");
         }
 
-        var result = await _agent.StartAgent(prompt);
+        var composedPrompt = await ComposePromptAsync(prompt);
+
+        var result = await _agent.StartAgent(composedPrompt);
         var contentList = result?.Content.Select(c => c.Text).ToList();
         var content = contentList != null ? string.Join("\n", contentList) : null;
 
@@ -69,7 +84,7 @@ public class BaseFantasyFootballTask : ITask
             throw new Exception("Agent failed to produce output.");
         }
 
-        var emailSubject = EmailSubject;
+        var emailSubject = BuildSubject();
 
         var contentHtml = Markdown.ToHtml(content);
         var consoleHtml = System.Net.WebUtility.HtmlEncode(capture.ToString());

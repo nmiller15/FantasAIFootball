@@ -121,6 +121,22 @@ public class LeagueRepository
         return user;
     }
 
+    public async Task<List<User>> GetUsers()
+    {
+        var response = await Get($"league/{_leagueId}/users");
+
+        var users = JsonSerializer.Deserialize<List<User>>(await response.Content.ReadAsStreamAsync());
+        return users ?? [];
+    }
+
+    public async Task<List<Transaction>> GetTransactions(int week)
+    {
+        var response = await Get($"league/{_leagueId}/transactions/{week}");
+
+        var transactions = JsonSerializer.Deserialize<List<Transaction>>(await response.Content.ReadAsStreamAsync());
+        return transactions ?? [];
+    }
+
     public async Task<Player> GetPlayer(string playerId)
     {
         var cacheResult = await _playerCache.Get(playerId);

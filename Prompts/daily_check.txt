@@ -1,0 +1,75 @@
+{{RUN_CONTEXT}}
+
+Decide whether any action is needed today — across **lineups**, **waivers**, and **trades** — and report only what is worth acting on. Doing nothing is a normal, expected outcome. Silence beats manufactured advice.
+
+## 1. Gather context
+
+Call `GetNflState`, `GetLeague`, `GetMyRoster`, `GetMatchups` for the relevant week, `GetUsers`, `GetTransactions` for the current and prior week, `GetMemories`, and `GetRecommendations`.
+
+Establish: who is a starter vs. bench, your roster needs and waiver priority, your standing watch list, and every trade proposal pending in either direction. Use the run context above for the date, week, and waiver deadline — never infer them yourself.
+
+## 2. Open only the gates that apply
+
+- **Lineup** — open only if games remain unplayed this week and at least one starter is questionable: injury, unclear status, role change, or a bench option clearly better under this league's scoring.
+- **Waiver** — open if the waiver window is still open, or a player you want could be claimed before the next deadline. When the deadline is less than 24 hours away this outranks everything else. Use `GetTransactions` to see what other teams have already claimed, so you do not target a player who is gone.
+- **Trade** — always evaluate. Surface a move only if the expected return clearly exceeds your replacement level **and** a plausible counterparty exists. `GetTransactions` and `GetUsers` show who is actively reshuffling; those teams are the best targets.
+
+If nothing passes, go to step 5.
+
+## 3. Research only what an open gate requires
+
+Verify every injury or playing-status claim against a real source before acting on it. Never research a player you would not start, claim, or trade.
+
+## 4. Judge against replacement, not rankings
+
+Weigh each candidate against the realistic alternative on your own roster or bench. Headline rankings, consensus projections, and ADP are inputs, not evidence.
+
+## 5. Decide
+
+If no gate passes, say so in one line and stop. Do not invent a reason to act.
+
+## 6. Persist
+
+Recommendations and memories serve different purposes. Recommendations are the running log of the calls you make, and must be recorded every run. Memories are not a daily log — they are only for things that would otherwise be forgotten before they matter.
+
+**Record via `AddRecommendation` (player name, direction, reason, confidence 0–1) — every concrete call you make:**
+
+- Each start/sit swap, add/drop, and proposed, accepted, or declined trade in the output.
+- Any pending proposal you advise countering or leaving open, so a later run can revisit it instead of forgetting it.
+- Reversals of earlier advice, with the reason you changed your mind.
+
+**Record via `AddMemory` — only when a fact must survive across weeks:**
+
+The test is: would forgetting this on a later run change a decision you make then? If the web will simply tell you again tomorrow, do not store it.
+
+- Players you are actively tracking, with a timeframe and something concrete to watch — e.g. "watch Player X's touches over the next 2-3 weeks before deciding whether to claim him."
+- Injury or depth-chart situations whose resolution will change a future decision.
+- Rest-of-season strategy: positional needs, buy/sell targets, playoff planning, who to acquire and who to dump on.
+- Standing preferences and constraints you have inferred about how I want you to operate.
+
+Most runs should write no memory at all. Do not store one-off news, single-game results, or anything the web will re-derive tomorrow. Read the memories you retrieved before writing, and never store a duplicate. If a memory you wrote earlier has since resolved or proved wrong, write the correction so it does not mislead a later run.
+
+## Output
+
+**When actions are warranted:**
+
+```
+## Action needed
+
+- [Lineup|Waiver|Trade] Do X — reason in one sentence or less, confidence N.
+```
+
+**When nothing is warranted:**
+
+```
+## No action needed
+
+One line on why, plus the next date that would change that.
+```
+
+## Rules
+
+- Never recommend a change to fill a lineup spot that does not exist, or to sit a player you have no credible replacement for.
+- No filler, no low-conviction padding, and no listing players you would not act on.
+- Explicitly flag anything you previously flagged that has now resolved, changed, or been contradicted.
+- Treat your prior recommendations as your own track record, and say so plainly when you reverse one.

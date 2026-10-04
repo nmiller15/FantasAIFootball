@@ -125,6 +125,26 @@ public static class AgentExtensions
 
         agent.AddTool(new Function
         {
+            Name = "GetUsers",
+            Description = "Gets all users in the league, including their display names and team names, so roster ids can be mapped to real owners. Returns an array of User."
+        });
+
+        agent.AddTool(new Function
+        {
+            Name = "GetTransactions",
+            Description = "Gets all transactions in the league for a given week, including completed trades and waiver moves, plus any trade proposals still pending. Returns an array of Transaction.",
+            Parameters = new FunctionParameters
+            {
+                Properties = new()
+                {
+                    ["week"] = new FunctionParameter { Type = "integer", Description = "The week number to retrieve transactions for." }
+                },
+                Required = ["week"]
+            }
+        });
+
+        agent.AddTool(new Function
+        {
             Name = "WebSearch",
             Description = "Searches the web for information, optionally constrained to a date range. Returns a QueryResult.",
             Parameters = new FunctionParameters

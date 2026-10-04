@@ -115,10 +115,7 @@ public static class ApplicationBuilderExtensions
 
     public static IServiceCollection AddTasks(this IServiceCollection services)
     {
-        services.AddSingleton<ITask, TuesdayWaiverTask>();
-        services.AddSingleton<ITask, ThursdayLineupTask>();
-        services.AddSingleton<ITask, MondayLineupTask>();
-        services.AddSingleton<ITask, SundayLineupTask>();
+        services.AddSingleton<ITask, DailyCheckTask>();
 
         return services;
     }

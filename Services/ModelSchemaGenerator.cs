@@ -67,6 +67,19 @@ public static class ModelSchemaGenerator
             return MapType(underlying, nestedTypes) + "?";
         }
 
+        // Dictionaries -> map<key, value>. This must be checked before the general
+        // IEnumerable branch, otherwise a Dictionary reports KeyValuePair<K, V> as
+        // its element type and produces misleading docs.
+        if (type != typeof(string) && typeof(IDictionary).IsAssignableFrom(type))
+        {
+            var args = type.GetGenericArguments();
+            if (args.Length == 2)
+            {
+                return "map<" + MapType(args[0], nestedTypes) + ", " + MapType(args[1], nestedTypes) + ">";
+            }
+            return "object";
+        }
+
         // Collections -> elementType[].
         if (type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type))
         {

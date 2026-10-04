@@ -128,6 +128,22 @@ public class FunctionService
                         ? FunctionResultStep.Failure(call, $"No corresponding matchup found for matchupId {matchupIdElement.GetInt32()} in week {correspondingWeekElement.GetInt32()}.")
                         : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(correspondingMatchup));
 
+                case "GetUsers":
+                    var allUsers = await _leagueRepository.GetUsers();
+                    return !allUsers.Any()
+                        ? FunctionResultStep.Failure(call, "No users found in this league.")
+                        : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(allUsers));
+
+                case "GetTransactions":
+                    if (!call.Arguments.TryGetProperty("week", out var transactionWeekElement) || transactionWeekElement.ValueKind != System.Text.Json.JsonValueKind.Number)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'week' argument.");
+                    }
+                    var transactions = await _leagueRepository.GetTransactions(transactionWeekElement.GetInt32());
+                    return !transactions.Any()
+                        ? FunctionResultStep.Failure(call, $"No transactions found for week {transactionWeekElement.GetInt32()}.")
+                        : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(transactions));
+
                 case "WebSearch":
                     if (!call.Arguments.TryGetProperty("query", out var queryElement) || queryElement.ValueKind != System.Text.Json.JsonValueKind.String)
                     {

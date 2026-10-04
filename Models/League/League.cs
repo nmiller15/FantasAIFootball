@@ -19,4 +19,8 @@ public class League
     public ScoringSettings ScoringSettings { get; set; }
     [JsonPropertyName("roster_positions")]
     public List<string> RosterPositions { get; set; }
+    [JsonPropertyName("settings")]
+    public LeagueSettings Settings { get; set; }
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
 }

@@ -26,10 +26,18 @@ public class PromptRepository
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Prompts", "system_prompt.txt");
         var modelDocs = ModelSchemaGenerator.Generate(
-            typeof(League),
-            typeof(ScoringSettings),
-            typeof(Roster),
-            typeof(Matchup),
+typeof(League),
+                typeof(LeagueSettings),
+                typeof(ScoringSettings),
+                typeof(Roster),
+                typeof(Matchup),
+                typeof(Transaction),
+                typeof(TradeDetail),
+                typeof(DraftPickTrade),
+                typeof(WaiverBudgetEntry),
+                typeof(TransactionSettings),
+                typeof(TransactionMetadata),
+                typeof(UserMetadata),
             typeof(Player),
             typeof(User),
             typeof(NflState),

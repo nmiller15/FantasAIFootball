@@ -98,14 +98,14 @@ public class Agent
                         break;
 
                     case ThoughtStep thought:
-                        Log.Information("Model thinking...");
+                        Log.Information("model thinking...");
 
                         if (thought.Summary != null)
                         {
                             foreach (var content in thought.Summary.Where(c => c != null))
                             {
                                 Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("Thought: ");
+                                Console.Write("thought: ");
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
                                 Console.WriteLine(content.Text);
                             }
@@ -113,6 +113,7 @@ public class Agent
                         break;
 
                     default:
+                        Log.Warning("unhandled step type: {StepType}", step.GetType().Name);
                         var unhandledStep = new UserInputStep
                         {
                             Content = new List<Content> { new Content { Text = "The previous step was unable to be handled by the agent." } }
