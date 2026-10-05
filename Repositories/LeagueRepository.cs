@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.League;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace FantasAIFootball.Repositories;
 
@@ -22,7 +22,7 @@ public class LeagueRepository
         {
             if (_userId == null)
             {
-                Log.Information($"Fetching user ID for username {_username}");
+                Log.Info($"Fetching user ID for username {_username}");
                 var user = GetUser(_username).Result ?? throw new Exception($"User {_username} not found");
                 _userId = user.UserId;
             }
@@ -46,34 +46,35 @@ public class LeagueRepository
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
 
-        Log.Debug($"get {_httpClient.BaseAddress}{request.RequestUri}");
+        var url = $"{_httpClient.BaseAddress}{path}";
 
         for (var attempt = 0; attempt < 5; attempt++)
         {
+            var stopwatch = Stopwatch.StartNew();
             var response = await _httpClient.SendAsync(request);
+            stopwatch.Stop();
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                var delay = response.Headers?.RetryAfter?.Delta
+                    ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
+
+                response.Dispose();
+
+                Log.Warn($"Rate limited on {url}. Retrying in {delay.TotalSeconds:0.#} seconds...");
+                await Task.Delay(delay);
+                continue;
+            }
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information("League: get {Path} - {StatusCode}", path, response.StatusCode);
-            }
-            else
-            {
-                Log.Error("League: get {Path} - {StatusCode}", path, response.StatusCode);
-            }
-
-            if (response.StatusCode != HttpStatusCode.TooManyRequests)
-            {
-                response.EnsureSuccessStatusCode();
+                Log.Debug($"GET {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms)");
                 return response;
             }
 
-            var delay = response.Headers?.RetryAfter?.Delta
-                ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
-
-            response.Dispose();
-
-            Log.Warning("Rate limited. Retrying in {Delay} seconds...", delay.TotalSeconds);
-            await Task.Delay(delay);
+            Log.Error($"GET {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms)");
+            response.EnsureSuccessStatusCode();
+            return response;
         }
 
         throw new UnreachableException();
@@ -145,7 +146,7 @@ public class LeagueRepository
             return JsonSerializer.Deserialize<Player>(cacheResult.Json);
         }
 
-        Log.Warning("Cache missed, last fetched at {InsertedAt} Fetching from API...", cacheResult?.InsertedAt);
+        Log.Warn($"Cache missed, last fetched at {cacheResult?.InsertedAt}. Fetching from API...");
 
         var response = await Get("players/nfl");
 

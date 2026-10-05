@@ -44,6 +44,7 @@ public class RecommendationRepository
     public async Task<List<Recommendation>> GetRecommendations()
     {
         using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
 
         using var command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;

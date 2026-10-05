@@ -1,4 +1,5 @@
 using System.Net;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Email;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
@@ -53,7 +54,7 @@ public class EmailRepository
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending email: {ex.Message}");
+            Log.Error($"Error sending email: {ex.Message}", ex);
             return false;
         }
     }

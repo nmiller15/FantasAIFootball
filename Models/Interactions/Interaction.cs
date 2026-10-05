@@ -14,6 +14,14 @@ public class Interaction
     public string? Status { get; set; }
     [JsonPropertyName("steps")]
     public List<IStep>? Steps { get; set; }
+    [JsonPropertyName("usage")]
+    public Usage Usage { get; set; }
+}
+
+public class Usage
+{
+    [JsonPropertyName("total_tokens")]
+    public int TotalTokens { get; set; }
 }
 
 public class Error

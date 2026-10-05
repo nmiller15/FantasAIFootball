@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FantasAIFootball.Extensions;
 using FantasAIFootball.Models.Email;
 using FantasAIFootball.Repositories;
@@ -10,6 +11,8 @@ namespace FantasAIFootball.Tasks;
 
 public class BaseFantasyFootballTask : ITask
 {
+    private static readonly Regex AnsiEscape = new(@"\x1b\[[0-9;]*m", RegexOptions.Compiled);
+
     protected readonly Agent _agent;
     protected readonly LeagueRepository _leagueRepository;
     protected readonly PromptRepository _promptRepository;
@@ -87,7 +90,7 @@ public class BaseFantasyFootballTask : ITask
         var emailSubject = BuildSubject();
 
         var contentHtml = Markdown.ToHtml(content);
-        var consoleHtml = System.Net.WebUtility.HtmlEncode(capture.ToString());
+        var consoleHtml = System.Net.WebUtility.HtmlEncode(AnsiEscape.Replace(capture.ToString(), ""));
 
         var emailBody =
                 contentHtml +

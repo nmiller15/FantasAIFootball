@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Interactions;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace FantasAIFootball.Repositories;
 
@@ -47,37 +47,35 @@ public class InteractionsRepository
             Content = JsonContent.Create(body)
         };
 
-        Log.Debug($"post {_httpClient.BaseAddress}{request.RequestUri}");
-
         for (var attempt = 0; attempt < 5; attempt++)
         {
+            var stopwatch = Stopwatch.StartNew();
             var response = await _httpClient.SendAsync(request);
+            stopwatch.Stop();
+
+            var url = $"{_httpClient.BaseAddress}{path}";
+
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                var delay = response.Headers?.RetryAfter?.Delta
+                    ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
+
+                response.Dispose();
+
+                Log.Warn($"Rate limited on {url}. Retrying in {delay.TotalSeconds:0.#} seconds...");
+                await Task.Delay(delay);
+                continue;
+            }
 
             if (response.IsSuccessStatusCode)
             {
-                Log.Information("post Interactions: {Path} - {StatusCode}", path, response.StatusCode);
-            }
-            else
-            {
-                Log.Error("post Interactions: {Path} - {StatusCode}\nERROR: {Response}",
-                    path,
-                    response.StatusCode,
-                    await response.Content.ReadAsStringAsync());
-            }
-
-            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests)
-            {
-                response.EnsureSuccessStatusCode();
+                Log.Debug($"POST {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms)");
                 return response;
             }
 
-            var delay = response.Headers?.RetryAfter?.Delta
-                ?? TimeSpan.FromMilliseconds(500 * Math.Pow(2, attempt));
-
-            response.Dispose();
-
-            Log.Warning("Rate limited. Retrying in {Delay} seconds...", delay.TotalSeconds);
-            await Task.Delay(delay);
+            Log.Error($"POST {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms){Environment.NewLine}ERROR: {await response.Content.ReadAsStringAsync()}");
+            response.EnsureSuccessStatusCode();
+            return response;
         }
 
         throw new UnreachableException();

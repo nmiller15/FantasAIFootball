@@ -41,6 +41,7 @@ public class MemoryRepository
     public async Task<List<Memory>> GetMemories()
     {
         using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
 
         using var command = connection.CreateCommand();
         command.CommandType = System.Data.CommandType.Text;

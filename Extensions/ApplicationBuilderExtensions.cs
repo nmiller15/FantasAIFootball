@@ -1,3 +1,4 @@
+using FantasAIFootball.Logging;
 using FantasAIFootball.Repositories;
 using FantasAIFootball.Services;
 using FantasAIFootball.Utilities;
@@ -76,10 +77,10 @@ public static class ApplicationBuilderExtensions
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading configuration: {ex.Message}");
-            Console.WriteLine("Please ensure that the configuration files exist in the following directory:");
-            Console.WriteLine(appDataFolder);
-            Console.WriteLine($"Required files: api_keys.json, ai_config.json, league_config.json");
+            Log.Error($"Error loading configuration: {ex.Message}");
+            Log.Error("Please ensure that the configuration files exist in the following directory:");
+            Log.Error(appDataFolder);
+            Log.Error("Required files: api_keys.json, ai_config.json, league_config.json");
 
             throw;
         }

@@ -1,7 +1,7 @@
 using System.Text.Json;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
-using Serilog;
 
 namespace FantasAIFootball.Services;
 
@@ -22,7 +22,15 @@ public class FunctionService
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
     {
-        LogCall(call);
+        Transcript.ToolCall(call);
+
+        var result = await Execute(call);
+        Transcript.ToolResult(result);
+        return result;
+    }
+
+    private async Task<FunctionResultStep> Execute(FunctionCallStep call)
+    {
         try
         {
             switch (call.Name)
@@ -234,16 +242,8 @@ public class FunctionService
         }
         catch (Exception ex)
         {
+            Log.Error($"Function '{call.Name}' threw", ex);
             return FunctionResultStep.Failure(call, $"Error executing function '{call.Name}': {ex.Message}");
         }
-    }
-
-    private void LogCall(FunctionCallStep call)
-    {
-        var arguments = string.Join(", ",
-            call.Arguments.EnumerateObject()
-                .Select(prop => $"{prop.Name}: {prop.Value}"));
-
-        Log.Information("<FUNCTION CALL> {FunctionName}({Arguments})", call.Name, arguments);
     }
 }

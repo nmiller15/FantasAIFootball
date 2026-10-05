@@ -1,6 +1,6 @@
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
-using Serilog;
 
 namespace FantasAIFootball.Services;
 
@@ -20,6 +20,7 @@ public class Agent
     public List<Function> Tools { get; set; } = [];
     public List<IStep> History { get; set; } = [];
     public string Model { get; set; } = "gemini-3.8-flash";
+    public int MaxTokens { get; set; } = 20_000;
 
     public Agent(InteractionsRepository interactionsRepository, FunctionService functionService)
     {
@@ -98,22 +99,17 @@ public class Agent
                         break;
 
                     case ThoughtStep thought:
-                        Log.Information("model thinking...");
-
                         if (thought.Summary != null)
                         {
                             foreach (var content in thought.Summary.Where(c => c != null))
                             {
-                                Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("thought: ");
-                                Console.ForegroundColor = ConsoleColor.DarkGray;
-                                Console.WriteLine(content.Text);
+                                Transcript.Thought(content.Text);
                             }
                         }
                         break;
 
                     default:
-                        Log.Warning("unhandled step type: {StepType}", step.GetType().Name);
+                        Log.Warn($"unhandled step type: {step.GetType().Name}");
                         var unhandledStep = new UserInputStep
                         {
                             Content = new List<Content> { new Content { Text = "The previous step was unable to be handled by the agent." } }
@@ -121,6 +117,11 @@ public class Agent
                         History.Add(unhandledStep);
                         break;
                 }
+            }
+
+            if (interaction.Usage.TotalTokens >= MaxTokens)
+            {
+                await Compact();
             }
 
             var nextRequest = new InteractionRequestBody
@@ -137,5 +138,35 @@ public class Agent
 
         State = AgentState.Stopped;
         return new();
+    }
+
+    private async Task Compact()
+    {
+        Log.Info($"Compacting conversation history ({History.Count} steps)...");
+
+        var originalHistory = History.ToList();
+        var compactionAgent = new Agent(_interactionsRepository, _functionService!)
+        {
+            MaxTokens = int.MaxValue
+        };
+        compactionAgent.AddSystemInstruction("You are a compaction agent. Your job is to summarize the conversation history into a more compact form, preserving the essential information and context.");
+        compactionAgent.History = History;
+        var output = await compactionAgent.StartAgent("Please summarize the conversation history into a single compact output, preserving the essential information and context.");
+
+        var summary = output.Content.FirstOrDefault()?.Text;
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            Log.Warn("Compaction failed, keeping the original conversation history.");
+            History.Clear();
+            History.AddRange(originalHistory);
+            return;
+        }
+
+        History.Clear();
+        History.Add(new UserInputStep
+        {
+            Content = new List<Content> { new Content { Text = summary } }
+        });
+        Log.Info("Compacted conversation history.");
     }
 }

@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Search;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 
 namespace FantasAIFootball.Repositories;
 
@@ -31,19 +32,19 @@ public class WebSearchRepository
             Content = JsonContent.Create(body)
         };
 
-        Log.Debug($"post {_httpClient.BaseAddress}{request.RequestUri}");
+        var url = $"{_httpClient.BaseAddress}{path}";
 
+        var stopwatch = Stopwatch.StartNew();
         var response = await _httpClient.SendAsync(request);
+        stopwatch.Stop();
 
         if (response.IsSuccessStatusCode)
         {
-            Log.Information("post Tavily: {Path} - {StatusCode}", path, response.StatusCode);
-        }
-        else
-        {
-            Log.Error("post Tavily: {Path} - {StatusCode}", path, response.StatusCode);
+            Log.Debug($"POST {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms)");
+            return response;
         }
 
+        Log.Error($"POST {url} → {(int)response.StatusCode} {response.StatusCode} ({stopwatch.ElapsedMilliseconds} ms)");
         response.EnsureSuccessStatusCode();
         return response;
     }

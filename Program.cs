@@ -1,11 +1,11 @@
 ﻿using FantasAIFootball.Extensions;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Email;
 using FantasAIFootball.Repositories;
 using FantasAIFootball.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace FantasAIFootball;
 
@@ -13,20 +13,16 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-#if DEBUG
-            .MinimumLevel.Debug()
-#endif
-#if !DEBUG
-            .MinimumLevel.Information()
-#endif
-            .WriteTo.Console(
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Level:u3} {Message:lj}{NewLine}{Exception}")
-            .CreateLogger();
-
         var builder = Host.CreateApplicationBuilder(args);
 
         builder.LoadConfiguration();
+
+#if DEBUG
+        Log.MinLevel = LogLevel.Debug;
+#else
+        Log.MinLevel = builder.Configuration.GetValue<bool>("debug") ? LogLevel.Debug : LogLevel.Info;
+#endif
+
         builder.Services.AddUtilities();
         builder.Services.AddRepositories();
         builder.Services.AddServices();
@@ -51,29 +47,13 @@ public class Program
 
         if (matchingTask == null)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("ERROR");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write(" - ");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("Task ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"'{firstArg ?? string.Empty}'");
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(" could not be found.");
-            Console.WriteLine();
-
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("Available tasks:");
-
-            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Log.Error($"Task '{firstArg ?? string.Empty}' could not be found.");
+            Log.Info("Available tasks:");
             foreach (var task in tasks)
             {
-                Console.WriteLine($"- {task.Name}");
+                Log.Info($"- {task.Name}");
             }
 
-            Console.ResetColor();
             return;
         }
 
@@ -81,7 +61,7 @@ public class Program
         {
             await matchingTask.Execute();
 
-            Log.Information($"SUCCESS - {matchingTask.Name} executed successfully.");
+            Log.Info($"{matchingTask.Name} executed successfully.");
         }
         catch (Exception ex)
         {
@@ -91,7 +71,7 @@ public class Program
             var from = config["from"];
             var subject = $"ERROR executing task {matchingTask.Name}: {ex.Message}";
 
-            Log.Error(ex, $"ERROR executing task {matchingTask.Name}: {ex.Message}");
+            Log.Error($"Error executing task {matchingTask.Name}: {ex.Message}", ex);
 
             var email = new Email
             {
@@ -102,8 +82,6 @@ public class Program
             };
 
             await emailRepository.SendEmail(email);
-
-            Log.CloseAndFlush();
         }
     }
 }
