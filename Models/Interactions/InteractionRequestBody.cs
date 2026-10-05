@@ -15,11 +15,15 @@ public class InteractionRequestBody
     public List<Function> Tools { get; set; } = [];
     [JsonPropertyName("store")]
     public bool Store { get; set; } = false;
+    [JsonPropertyName("generation_config")]
+    public GenerationConfig GenerationConfig { get; set; } = new();
 }
 
-
-
-
+public class GenerationConfig
+{
+    [JsonPropertyName("thinking_summaries")]
+    public string ThinkingSummaries { get; set; } = "auto";
+}
 
 
 
