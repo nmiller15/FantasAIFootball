@@ -13,6 +13,9 @@ public class BaseFantasyFootballTask : ITask
 {
     private static readonly Regex AnsiEscape = new(@"\x1b\[[0-9;]*m", RegexOptions.Compiled);
 
+    private static readonly MarkdownPipeline Pipeline =
+        new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+
     protected readonly Agent _agent;
     protected readonly LeagueRepository _leagueRepository;
     protected readonly PromptRepository _promptRepository;
@@ -89,7 +92,7 @@ public class BaseFantasyFootballTask : ITask
 
         var emailSubject = BuildSubject();
 
-        var contentHtml = Markdown.ToHtml(content);
+        var contentHtml = Markdown.ToHtml(content, Pipeline);
         var consoleHtml = System.Net.WebUtility.HtmlEncode(AnsiEscape.Replace(capture.ToString(), ""));
 
         var emailBody = BuildEmailBody(emailSubject, contentHtml, consoleHtml);

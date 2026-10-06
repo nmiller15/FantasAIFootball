@@ -16,7 +16,7 @@ public static class Transcript
         }
 
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.WriteLine($"✻ {Truncate(Flatten(text))}");
+        Console.WriteLine($"✻ {Flatten(text)}");
         Console.ResetColor();
     }
 
