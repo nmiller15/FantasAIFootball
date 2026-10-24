@@ -11,18 +11,29 @@ public class FunctionService
     private readonly WebSearchRepository _webSearchRepository;
     private readonly MemoryRepository _memoryRepository;
     private readonly RecommendationRepository _recommendationRepository;
+    private readonly StatsRepository _statsRepository;
 
-    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository, RecommendationRepository recommendationRepository)
+    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository, RecommendationRepository recommendationRepository, StatsRepository statsRepository)
     {
         _leagueRepository = leagueRepository;
         _webSearchRepository = webSearchRepository;
         _memoryRepository = memoryRepository;
         _recommendationRepository = recommendationRepository;
+        _statsRepository = statsRepository;
     }
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
     {
         Transcript.ToolCall(call);
+
+        try
+        {
+            await _statsRepository.LogToolCall(call.Name, call.Arguments.ToString());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error logging tool call: {ex.Message}");
+        }
 
         var result = await Execute(call);
         Transcript.ToolResult(result);

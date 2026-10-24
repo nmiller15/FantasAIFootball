@@ -1,9 +1,12 @@
-name: Deploy FantasAIFootball Jobs
+name: Deploy FantasAIFootball
 
 on:
   push:
     branches:
       - main
+  release:
+    types:
+      - published
   workflow_dispatch:
 
 jobs:
@@ -34,16 +37,39 @@ jobs:
 
       - name: Build FantasAIFootball
         run: |
-          dotnet build
+          dotnet build FantasAIFootball.csproj
+
+      - name: Build Stats Dashboard
+        run: |
+          dotnet build StatsDashboard/StatsDashboard.csproj
 
       - name: Restore for Linux Runtime
         run: |
-          dotnet restore --runtime linux-x64
+          dotnet restore FantasAIFootball.csproj --runtime linux-x64
+          dotnet restore StatsDashboard/StatsDashboard.csproj --runtime linux-x64
 
       - name: Publish FantasAIFootball
         run: |
-          dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish 
+          dotnet publish FantasAIFootball.csproj -c Release -r linux-x64 --self-contained true -o ./publish
 
-      - name: Deploy to EC2
+      - name: Publish Stats Dashboard
         run: |
-          rsync -avzO --no-perms --delete ./publish/ nolan@${{ secrets.EC2_PUBLIC_IP }}:/opt/FantasAIFootball/
+          dotnet publish StatsDashboard/StatsDashboard.csproj -c Release -r linux-x64 --self-contained true -o ./dashboard-publish
+
+      - name: Deploy FantasAIFootball to EC2
+        run: |
+          rsync -avzO --no-perms --delete --exclude='/dashboard/' ./publish/ nolan@${{ secrets.EC2_PUBLIC_IP }}:/opt/FantasAIFootball/
+
+      - name: Deploy Stats Dashboard to EC2
+        run: |
+          ssh nolan@${{ secrets.EC2_PUBLIC_IP }} 'mkdir -p /opt/FantasAIFootball/dashboard'
+          rsync -avzO --no-perms --delete ./dashboard-publish/ nolan@${{ secrets.EC2_PUBLIC_IP }}:/opt/FantasAIFootball/dashboard/
+
+      - name: Restart Stats Dashboard and Caddy
+        run: |
+          ssh nolan@${{ secrets.EC2_PUBLIC_IP }} '
+            set -e
+            chmod +x /opt/FantasAIFootball/dashboard/StatsDashboard
+            sudo -n systemctl restart fantasaifootball-dashboard.service
+            sudo -n systemctl restart caddy
+          '

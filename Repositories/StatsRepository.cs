@@ -1,0 +1,59 @@
+using FantasAIFootball.Utilities;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+
+namespace FantasAIFootball.Repositories;
+
+public class StatsRepository
+{
+    private readonly string _dbName = "stats.db";
+    private readonly string _connectionString;
+
+    private readonly string _leagueId;
+
+    public StatsRepository(IConfiguration configuration)
+    {
+        _leagueId = configuration.GetValue<string>("leagueId") ?? throw new Exception("League ID is not set. Please set the 'leagueId' in your configuration.");
+
+        var userAppData = UserData.GetAppDataLocation();
+        _connectionString = $"Data Source={userAppData}/{_dbName}";
+
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = @"
+            CREATE TABLE IF NOT EXISTS ToolCallRecords (
+                Key INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT,
+                Parameters TEXT,
+                LeagueId TEXT,
+                InsertedAt TEXT
+            );
+        ";
+
+        command.ExecuteNonQuery();
+    }
+
+    public async Task LogToolCall(string name, string parameters)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandType = System.Data.CommandType.Text;
+        command.CommandText = @"
+            INSERT INTO ToolCallRecords 
+            (Name, Parameters, LeagueId, InsertedAt) VALUES
+            (@Name, @Parameters, @LeagueId, @InsertedAt);
+            ";
+
+        command.Parameters.AddWithValue("@Name", name);
+        command.Parameters.AddWithValue("@Parameters", parameters);
+        command.Parameters.AddWithValue("@LeagueId", _leagueId);
+        command.Parameters.AddWithValue("@InsertedAt", DateTime.Now.ToString("o"));
+
+        command.ExecuteNonQuery();
+    }
+}
