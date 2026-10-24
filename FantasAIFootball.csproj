@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <Content Include="Prompts\**\*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The dashboard is an independently built web application. -->
+    <Compile Remove="StatsDashboard/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
