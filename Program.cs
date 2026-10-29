@@ -65,6 +65,7 @@ public class Program
         }
         catch (Exception ex)
         {
+            Environment.ExitCode = 1;
             var emailRepository = app.Services.GetRequiredService<EmailRepository>();
             var config = app.Services.GetRequiredService<IConfiguration>();
             var to = config["to"];
@@ -81,7 +82,10 @@ public class Program
                 Body = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}"
             };
 
-            await emailRepository.SendEmail(email);
+            if (!await emailRepository.SendEmail(email))
+            {
+                Log.Error("Unable to send the task failure notification email.");
+            }
         }
     }
 }

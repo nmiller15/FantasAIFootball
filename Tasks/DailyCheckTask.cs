@@ -16,8 +16,8 @@ public class DailyCheckTask : BaseFantasyFootballTask
     private League? _league;
     private string? _leagueName;
 
-    public DailyCheckTask(Agent agent, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
-        : base(agent, leagueRepository, promptRepository, emailRepository, configuration)
+    public DailyCheckTask(Agent agent, ScheduleRepository scheduleRepository, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
+        : base(agent, scheduleRepository, leagueRepository, promptRepository, emailRepository, configuration)
     {
         _configuration = configuration;
         PromptName = "daily_check";
@@ -31,7 +31,7 @@ public class DailyCheckTask : BaseFantasyFootballTask
         return $"{_leagueName} - Daily Check ({DateTime.Now:ddd MMM d})";
     }
 
-    protected override async Task<string> ComposePromptAsync(string prompt)
+    protected override async Task<string> ComposePromptAsync(string prompt, string? runNotes = null)
     {
         var nflState = await _leagueRepository.GetNflState();
 
@@ -45,6 +45,7 @@ public class DailyCheckTask : BaseFantasyFootballTask
             DateTimeOffset.Now,
             nflState,
             _league?.Settings,
+            runNotes,
             dayOverride);
 
         if (string.IsNullOrWhiteSpace(runContext))

@@ -102,6 +102,7 @@ public static class ApplicationBuilderExtensions
         services.AddSingleton<InteractionsRepository>();
         services.AddSingleton<PromptRepository>();
         services.AddSingleton<RecommendationRepository>();
+        services.AddSingleton<ScheduleRepository>();
         services.AddSingleton<StatsRepository>();
 
         return services;

@@ -216,5 +216,26 @@ public static class AgentExtensions
                 Required = ["playerName", "direction", "reason", "confidence"]
             }
         });
+
+        agent.AddTool(new Function
+        {
+            Name = "GetNextRun",
+            Description = "Gets the next upcoming run for this league, or null if none is scheduled. Returns a Run with its scheduled time and high-level notes."
+        });
+
+        agent.AddTool(new Function
+        {
+            Name = "ScheduleRun",
+            Description = "Schedules the next run for this league at a future local date and time. Use only if GetNextRun found no upcoming run. Notes are optional high-level context, not a substitute for memories or recommendations.",
+            Parameters = new FunctionParameters
+            {
+                Properties = new()
+                {
+                    ["runDateTime"] = new FunctionParameter { Type = "string", Description = "Future date and time in ISO 8601 format with a time-zone offset (e.g. 2026-10-29T18:00:00-04:00)." },
+                    ["notes"] = new FunctionParameter { Type = "string", Description = "Optional brief, high-level context for that run; store all decision details in memories and recommendations." }
+                },
+                Required = ["runDateTime"]
+            }
+        });
     }
 }

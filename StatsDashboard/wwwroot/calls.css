@@ -4,6 +4,10 @@
 .call summary:hover,.call[open] summary{background:#1e2c34}
 .call summary:focus-visible{outline:2px solid #80e5af;outline-offset:-3px}
 .call-name{font-weight:650;overflow-wrap:anywhere}
+.run-pending>summary{background:#121a22}
+.run-pending .call-name,.run-pending time{color:#92a1ab}
+.run-status{display:inline-block;margin-left:8px;padding:3px 7px;border:1px solid #53616b;border-radius:4px;color:#b1bec5;font-size:10px;font-weight:700;letter-spacing:.06em;vertical-align:middle;white-space:nowrap}
+.run-undelivered .run-status{border-color:#9c7948;color:#e0bb81}
 .call time{color:#a2b2bc;white-space:nowrap}
 .chevron{display:block;width:9px;height:9px;border-right:2px solid #81e6b6;border-bottom:2px solid #81e6b6;transform:rotate(45deg);justify-self:center;flex:none}
 .call[open] .chevron{transform:rotate(-135deg)}
@@ -49,6 +53,13 @@
 .league-id,.headline-id{display:block;color:#8d9aa7;font-size:11px;letter-spacing:.08em;overflow-wrap:anywhere}
 .league-id{margin-bottom:24px}
 .headline-id{margin:-4px 0 12px}
+.runs-section{margin-bottom:50px}
+.runs-empty{padding:24px;color:#a2b2bc;font-size:13px}
+.card-run-times{border-top:1px solid #2c3b42;padding-top:16px;margin-top:22px}
+.league-card .card-run-times p{border:0;padding:0;margin:0 0 10px;line-height:1.5;overflow-wrap:anywhere}
+.league-card .card-run-times p:last-child{color:#a5e8c7;margin-bottom:0}
+.run-details p{font-size:13px;line-height:1.6;color:#cde5d8;overflow-wrap:anywhere}
+.run-details iframe{display:block;width:100%;height:600px;margin-top:18px;border:1px solid #2b3942;border-radius:6px;background:#fff}
 @media(max-width:550px){.tool-entries{padding:0 10px 15px}.tool-entries th:first-child,.tool-entries td:first-child{width:125px}.tool-entries th,.tool-entries td{padding:12px 7px}.tool-group>summary{padding:18px 15px}.tool-group .chevron{right:19px;top:23px}}
 @media(max-width:550px){.league-section .day-list{padding:14px}.day-group>summary{grid-template-columns:85px minmax(0,1fr) 36px 12px}.day-breakdown{padding:8px 10px}}
 @media(max-width:550px){.call summary{grid-template-columns:minmax(0,1fr) 20px;gap:8px}.call time{grid-column:1;grid-row:2}.chevron{grid-column:2;grid-row:1/3}}

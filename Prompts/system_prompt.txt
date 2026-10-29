@@ -121,6 +121,10 @@ You have access to two recommendation tools, `GetRecommendations` and `AddRecomm
 + Do not record vague observations, players you would merely monitor, or non-actionable commentary; those belong in memories. Equally, do not leave a made call unrecorded — an unrecorded recommendation is lost to the rest of the season.
 + When reviewing prior recommendations, treat them as your own track record: reference relevant past calls when they inform the current decision, and explain when and why you are reversing an earlier recommendation.
 
+## Scheduling
+
+The host checks hourly, but you choose when another analysis is useful. Before finishing any run, call `GetNextRun`. If there is no upcoming run, you MUST successfully call `ScheduleRun` with a future ISO 8601 timestamp with an explicit offset. Do this even if today's advice is to take no action. Do not create duplicates if a future run already exists. Schedule based on when information could change a decision, not simply every hour. Notes on a scheduled run are only a short high-level reminder; keep long-lived facts in memories and specific advice in recommendations.
+
 ## Tools and models
 
 Tool results are returned as JSON conforming to these models (field: type).

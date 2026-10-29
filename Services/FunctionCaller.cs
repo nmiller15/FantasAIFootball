@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Interactions;
 using FantasAIFootball.Repositories;
@@ -12,14 +13,16 @@ public class FunctionService
     private readonly MemoryRepository _memoryRepository;
     private readonly RecommendationRepository _recommendationRepository;
     private readonly StatsRepository _statsRepository;
+    private readonly ScheduleRepository _scheduleRepository;
 
-    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository, RecommendationRepository recommendationRepository, StatsRepository statsRepository)
+    public FunctionService(LeagueRepository leagueRepository, WebSearchRepository webSearchRepository, MemoryRepository memoryRepository, RecommendationRepository recommendationRepository, StatsRepository statsRepository, ScheduleRepository scheduleRepository)
     {
         _leagueRepository = leagueRepository;
         _webSearchRepository = webSearchRepository;
         _memoryRepository = memoryRepository;
         _recommendationRepository = recommendationRepository;
         _statsRepository = statsRepository;
+        _scheduleRepository = scheduleRepository;
     }
 
     public async Task<FunctionResultStep> GetFunctionResultStep(FunctionCallStep call)
@@ -246,6 +249,41 @@ public class FunctionService
                     );
 
                     return FunctionResultStep.Success(call, "Recommendation added successfully.");
+
+                case "GetNextRun":
+                    var nextRun = await _scheduleRepository.GetNextRun();
+                    Log.Info(nextRun == null
+                        ? "Schedule check: no upcoming run."
+                        : $"Schedule check: next run #{nextRun.Key} at {nextRun.RunDateTime:yyyy-MM-dd HH:mm zzz}.");
+                    return FunctionResultStep.Success(call, JsonSerializer.Serialize(nextRun));
+
+                case "ScheduleRun":
+                    if (!call.Arguments.TryGetProperty("runDateTime", out var runDateTimeElement) ||
+                        runDateTimeElement.ValueKind != JsonValueKind.String ||
+                        !DateTimeOffset.TryParse(runDateTimeElement.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var runDateTime) ||
+                        runDateTime <= DateTimeOffset.Now)
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'runDateTime': provide a future ISO 8601 date and time with a time-zone offset.");
+                    }
+
+                    // Require an explicit offset so the agent cannot accidentally schedule in the server's time zone.
+                    var dateText = runDateTimeElement.GetString()!;
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(dateText, @"(Z|[+-]\d{2}:\d{2})$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                    {
+                        return FunctionResultStep.Failure(call, "'runDateTime' must include a time-zone offset or Z.");
+                    }
+
+                    var notes = call.Arguments.TryGetProperty("notes", out var notesElement) && notesElement.ValueKind == JsonValueKind.String
+                        ? notesElement.GetString() ?? ""
+                        : "";
+                    if (await _scheduleRepository.GetNextRun() != null)
+                    {
+                        return FunctionResultStep.Failure(call, "An upcoming run is already scheduled. Check GetNextRun before scheduling another.");
+                    }
+
+                    await _scheduleRepository.ScheduleRun(runDateTime.LocalDateTime, notes);
+                    Log.Info($"Scheduled next run for {runDateTime:yyyy-MM-dd HH:mm zzz}.");
+                    return FunctionResultStep.Success(call, "Run scheduled successfully.");
 
                 default:
                     return FunctionResultStep.Failure(call, $"Function '{call.Name}' does not exist.");

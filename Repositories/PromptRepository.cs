@@ -1,6 +1,7 @@
 using FantasAIFootball.Models.League;
 using FantasAIFootball.Models.Memories;
 using FantasAIFootball.Models.Search;
+using FantasAIFootball.Models.Schedule;
 using FantasAIFootball.Utilities;
 
 namespace FantasAIFootball.Repositories;
@@ -44,7 +45,8 @@ typeof(League),
             typeof(QueryResult),
             typeof(ExtractResult),
             typeof(Memory),
-            typeof(Recommendation));
+            typeof(Recommendation),
+            typeof(Run));
 
         var systemInstruction = await File.ReadAllTextAsync(path);
 

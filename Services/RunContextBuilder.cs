@@ -20,6 +20,7 @@ public static class RunContextBuilder
         DateTimeOffset now,
         NflState nflState,
         LeagueSettings? settings,
+        string? runNotes = null,
         int? waiverDayOverride = null)
     {
         var eastern = ToEastern(now);
@@ -45,8 +46,9 @@ public static class RunContextBuilder
 
         var lines = new List<string>
         {
-            $"Today is {DayNames[(int)eastern.DayOfWeek]}, {eastern:yyyy-MM-dd}.",
-            $"NFL state: season {nflState.Season}, season_type '{nflState.SeasonType}', week {nflState.Week}, display_week {nflState.DisplayWeek}."
+            $"Current Eastern time is {eastern:yyyy-MM-dd HH:mm zzz} ({DayNames[(int)eastern.DayOfWeek]}). Use an ISO 8601 date/time with its offset when scheduling; the task is invoked hourly.",
+            $"NFL state: season {nflState.Season}, season_type '{nflState.SeasonType}', week {nflState.Week}, display_week {nflState.DisplayWeek}.",
+            $"High-level notes from the scheduled run: {(string.IsNullOrWhiteSpace(runNotes) ? "none" : runNotes)}. Retrieve memories and recommendations for decision details."
         };
 
         lines.AddRange(BuildWaiverLines(eastern, effective));

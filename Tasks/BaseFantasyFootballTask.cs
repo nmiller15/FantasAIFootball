@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using FantasAIFootball.Extensions;
+using FantasAIFootball.Logging;
 using FantasAIFootball.Models.Email;
 using FantasAIFootball.Repositories;
 using FantasAIFootball.Services;
@@ -17,6 +18,7 @@ public class BaseFantasyFootballTask : ITask
         new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
     protected readonly Agent _agent;
+    protected readonly ScheduleRepository _scheduleRepository;
     protected readonly LeagueRepository _leagueRepository;
     protected readonly PromptRepository _promptRepository;
     protected readonly EmailRepository _emailRepository;
@@ -28,9 +30,10 @@ public class BaseFantasyFootballTask : ITask
     public string PromptName { get; set; }
     public string EmailSubject { get; set; }
 
-    public BaseFantasyFootballTask(Agent agent, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
+    public BaseFantasyFootballTask(Agent agent, ScheduleRepository scheduleRepository, LeagueRepository leagueRepository, PromptRepository promptRepository, EmailRepository emailRepository, IConfiguration configuration)
     {
         _agent = agent;
+        _scheduleRepository = scheduleRepository;
         _leagueRepository = leagueRepository;
         _promptRepository = promptRepository;
         _emailRepository = emailRepository;
@@ -49,7 +52,7 @@ public class BaseFantasyFootballTask : ITask
     /// Gives the task a chance to prepend runtime context to the prompt loaded from
     /// Prompts before it is handed to the agent.
     /// </summary>
-    protected virtual Task<string> ComposePromptAsync(string prompt) => Task.FromResult(prompt);
+    protected virtual Task<string> ComposePromptAsync(string prompt, string? runNotes) => Task.FromResult(prompt);
 
     public async Task Execute()
     {
@@ -58,6 +61,31 @@ public class BaseFantasyFootballTask : ITask
 
         var teeWriter = new TeeWriter(output, capture);
         Console.SetOut(teeWriter);
+
+        var dueRun = await _scheduleRepository.GetDueRun();
+        if (dueRun == null)
+        {
+            if (await _scheduleRepository.GetNextRun() is { } upcomingRun)
+            {
+                Log.Info($"No run due. Next run #{upcomingRun.Key} is scheduled for {upcomingRun.RunDateTime:yyyy-MM-dd HH:mm zzz}.");
+                return;
+            }
+
+            // Give the initial run a durable due record so a failed email can be retried.
+            Log.Info("No scheduled runs found; creating an initial check.");
+            await _scheduleRepository.ScheduleRun(DateTime.Now.AddMinutes(-1), "Initial check.");
+            dueRun = await _scheduleRepository.GetDueRun()
+                ?? throw new InvalidOperationException("Could not create the initial run.");
+        }
+
+        Log.Info($"Running scheduled check #{dueRun.Key} (due {dueRun.RunDateTime:yyyy-MM-dd HH:mm zzz}).");
+        if (await _scheduleRepository.GetPendingReport(dueRun.Key) is { } pendingReport)
+        {
+            // Retry delivery without rerunning the agent or writing duplicate recommendations.
+            Log.Info($"Retrying saved report for run #{dueRun.Key}; skipping agent execution.");
+            await SendReportAndCompleteRun(dueRun.Key, pendingReport.Subject, pendingReport.Body);
+            return;
+        }
 
         var systemInstruction = await _promptRepository.GetSystemInstruction();
         if (string.IsNullOrEmpty(systemInstruction))
@@ -74,20 +102,33 @@ public class BaseFantasyFootballTask : ITask
             throw new Exception("Prompt not found");
         }
 
-        var composedPrompt = await ComposePromptAsync(prompt);
+        var composedPrompt = await ComposePromptAsync(prompt, dueRun?.Notes);
 
         var result = await _agent.StartAgent(composedPrompt);
         var contentList = result?.Content.Select(c => c.Text).ToList();
         var content = contentList != null ? string.Join("\n", contentList) : null;
+
+        if (string.IsNullOrEmpty(content))
+        {
+            throw new Exception("Agent failed to produce output.");
+        }
 
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("Agent output:");
         Console.ResetColor();
         Console.WriteLine(Markdown.Normalize(content));
 
-        if (string.IsNullOrEmpty(content))
+        var nextRun = await _scheduleRepository.GetNextRun();
+        if (nextRun == null)
         {
-            throw new Exception("Agent failed to produce output.");
+            var fallback = NextMorningEasternAtSeven();
+            await _scheduleRepository.ScheduleRun(fallback, "Automatic fallback check after no future run was scheduled.");
+            Log.Warn($"Agent left no future run; scheduled fallback for {fallback:yyyy-MM-dd HH:mm zzz}.");
+            content += $"\n\nNext check: {fallback:yyyy-MM-dd h:mm tt zzz} (automatically scheduled).";
+        }
+        else
+        {
+            Log.Info($"Next run #{nextRun.Key} is scheduled for {nextRun.RunDateTime:yyyy-MM-dd HH:mm zzz}.");
         }
 
         var emailSubject = BuildSubject();
@@ -97,15 +138,38 @@ public class BaseFantasyFootballTask : ITask
 
         var emailBody = BuildEmailBody(emailSubject, contentHtml, consoleHtml);
 
-        var email = new Email
-        {
-            To = _emailTo,
-            From = _emailFrom,
-            Subject = emailSubject,
-            Body = emailBody,
-        };
+        await _scheduleRepository.SaveReport(dueRun.Key, emailSubject, emailBody);
+        await SendReportAndCompleteRun(dueRun.Key, emailSubject, emailBody);
+    }
 
-        await _emailRepository.SendEmail(email);
+    private async Task SendReportAndCompleteRun(int runKey, string subject, string body)
+    {
+        // A report may wait for delivery past its previously scheduled next check.
+        // Keep a future run in place even when this invocation is only retrying email.
+        if (await _scheduleRepository.GetNextRun() == null)
+        {
+            var fallback = NextMorningEasternAtSeven();
+            await _scheduleRepository.ScheduleRun(fallback, "Automatic fallback check after the prior run's email was delayed.");
+            Log.Warn($"No future run remains; scheduled fallback for {fallback:yyyy-MM-dd HH:mm zzz}.");
+        }
+
+        Log.Info($"Sending report for run #{runKey}.");
+        var email = new Email { To = _emailTo, From = _emailFrom, Subject = subject, Body = body };
+        if (!await _emailRepository.SendEmail(email))
+        {
+            throw new InvalidOperationException("Report email could not be sent; the saved report remains pending for retry.");
+        }
+
+        await _scheduleRepository.MarkRunExecuted(runKey);
+        Log.Info($"Run #{runKey} completed; report delivered.");
+    }
+
+    private static DateTime NextMorningEasternAtSeven()
+    {
+        var eastern = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+        var easternNow = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, eastern);
+        var morning = easternNow.Date.AddDays(1).AddHours(7);
+        return TimeZoneInfo.ConvertTimeToUtc(morning, eastern).ToLocalTime();
     }
 
     /// <summary>
