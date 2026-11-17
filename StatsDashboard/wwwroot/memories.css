@@ -1,4 +1,10 @@
 .memories-section{margin-bottom:52px}
+.memories-section>summary{display:flex;align-items:center;gap:14px;cursor:pointer;list-style:none}
+.memories-section>summary::-webkit-details-marker{display:none}
+.memories-section>summary::marker{content:""}
+.memories-section>summary:focus-visible{outline:2px solid #80e5af;outline-offset:3px}
+.memories-section>summary>span:not(.chevron){margin-left:auto}
+.memories-section[open]>summary .chevron{transform:rotate(-135deg)}
 .memories-empty{padding:24px;color:#98a9b4}
 .memory-list{display:grid;gap:14px}
 .memory-card{padding:22px 26px}

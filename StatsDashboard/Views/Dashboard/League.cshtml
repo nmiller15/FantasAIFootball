@@ -23,13 +23,34 @@
         </form>
     </div>
 </section>
-<section class="memories-section">
-    <div class="section-title"><h2>League memories</h2><span>@Model.Memories.Entries.Count.ToString("N0") MEMORIES · ALL TIME</span></div>
-    @if (TempData["MemorySuccess"] is string memorySuccess)
+<section class="runs-section">
+    <div class="section-title"><h2>Recent runs</h2><span>@Model.Runs.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
+    @if (Model.Runs.Total > 0)
+    {
+        <div class="panel call-list">
+            @foreach (var run in Model.Runs.Runs)
+            {
+                <partial name="_Run" model="run" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="panel runs-empty">@(Model.Runs.DatabaseExists ? "No runs in this date range. Try All time or check back later." : "The schedule database or Runs table was not found. Check the writer’s location or set SCHEDULE_DB_PATH.")</div>
+    }
+    <a class="history-link" asp-action="Runs" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query">View all runs →</a>
+</section>
+@{
+    var memorySuccess = TempData["MemorySuccess"] as string;
+    var memoryError = TempData["MemoryError"] as string;
+}
+<details class="memories-section" open="@(memorySuccess is not null || memoryError is not null)">
+    <summary class="section-title"><h2>League memories</h2><span>@Model.Memories.Entries.Count.ToString("N0") MEMORIES · ALL TIME</span><span class="chevron" aria-hidden="true"></span></summary>
+    @if (memorySuccess is not null)
     {
         <p class="schedule-success" role="status">@memorySuccess</p>
     }
-    @if (TempData["MemoryError"] is string memoryError)
+    @if (memoryError is not null)
     {
         <p class="schedule-error" role="alert">@memoryError</p>
     }
@@ -64,24 +85,7 @@
             }
         </div>
     }
-</section>
-<section class="runs-section">
-    <div class="section-title"><h2>Recent runs</h2><span>@Model.Runs.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
-    @if (Model.Runs.Total > 0)
-    {
-        <div class="panel call-list">
-            @foreach (var run in Model.Runs.Runs)
-            {
-                <partial name="_Run" model="run" />
-            }
-        </div>
-    }
-    else
-    {
-        <div class="panel runs-empty">@(Model.Runs.DatabaseExists ? "No runs in this date range. Try All time or check back later." : "The schedule database or Runs table was not found. Check the writer’s location or set SCHEDULE_DB_PATH.")</div>
-    }
-    <a class="history-link" asp-action="Runs" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query">View all runs →</a>
-</section>
+</details>
 @if (Model.Data.Total == 0)
 {
     <partial name="_EmptyCalls" model="Model.Data.DatabaseExists" />
