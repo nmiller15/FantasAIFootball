@@ -1,0 +1,6 @@
+@model bool
+<section class="empty">
+    <span class="empty-icon">◇</span>
+    <h2>No calls to show</h2>
+    <p>@(Model ? "There are no tool calls in this date range. Try All time or check back later." : "The stats database was not found in this user’s app-data directory. Check the writer’s location or set STATS_DB_PATH.")</p>
+</section>

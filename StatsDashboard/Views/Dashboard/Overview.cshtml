@@ -1,0 +1,37 @@
+@model OverviewViewModel
+@{
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+<section class="metrics">
+    <div class="metric"><span>TOTAL TOOL CALLS</span><strong>@Model.Data.Total.ToString("N0")</strong><small>@Model.Data.Period.Label</small></div>
+    <div class="metric"><span>ACTIVE LEAGUES</span><strong>@Model.Data.Leagues.Count.ToString("N0")</strong><small>With recorded activity</small></div>
+</section>
+<div class="section-title"><h2>Leagues</h2><span>@Model.Data.Leagues.Count LEAGUES</span></div>
+@if (Model.Data.Leagues.Count == 0)
+{
+    <partial name="_EmptyCalls" model="Model.Data.DatabaseExists" />
+}
+else
+{
+    <div class="league-grid">
+        @foreach (var league in Model.Data.Leagues)
+        {
+            Model.Names.TryGetValue(league.Id, out var name);
+            Model.Timings.TryGetValue(league.Id, out var timing);
+            <a class="league-card" asp-action="League" asp-route-leagueId="@league.Id" asp-route-period="@Model.Data.Period.Query">
+                <span class="card-label">LEAGUE <span>↗</span></span>
+                <h3>@(!string.IsNullOrWhiteSpace(name) ? name : string.IsNullOrEmpty(league.Id) ? "(empty ID)" : league.Id)</h3>
+                <span class="league-id">ID · @league.Id</span>
+                <div class="card-stats">
+                    <div><strong>@league.Calls.ToString("N0")</strong><small>CALLS</small></div>
+                    <div><strong>@league.Tools.ToString("N0")</strong><small>TOOLS USED</small></div>
+                </div>
+                <div class="card-run-times">
+                    <p>LAST EXECUTED · @DashboardFormatting.RunTime(timing?.LastExecuted, today)</p>
+                    <p>NEXT SCHEDULED · @DashboardFormatting.RunTime(timing?.NextScheduled, today)</p>
+                </div>
+                <p>LAST CALL · @DashboardFormatting.Time(league.LastCall)</p>
+            </a>
+        }
+    </div>
+}

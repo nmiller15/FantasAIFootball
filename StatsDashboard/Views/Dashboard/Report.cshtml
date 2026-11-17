@@ -1,0 +1,21 @@
+@model RunReport
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>@(Model.Subject ?? "Run report") · FantasAI Football</title>
+    <link rel="stylesheet" href="~/report.css" asp-append-version="true">
+</head>
+<body>
+    <header>
+        <span>@(Model.Subject ?? "Run report")</span>
+        <a asp-controller="Dashboard" asp-action="Runs" asp-route-leagueId="@Model.LeagueId">← All runs</a>
+    </header>
+    <iframe title="Report: @(Model.Subject ?? "Run report")" sandbox="" referrerpolicy="no-referrer" srcdoc="@Model.Body"></iframe>
+</body>
+</html>

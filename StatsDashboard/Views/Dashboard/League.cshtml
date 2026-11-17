@@ -1,0 +1,98 @@
+@model LeagueViewModel
+<section class="metrics">
+    <div class="metric"><span>SCHEDULED RUNS</span><strong>@Model.Runs.Total.ToString("N0")</strong><small>@Model.Data.Period.Label</small></div>
+    <div class="metric"><span>TOTAL TOOL CALLS</span><strong>@Model.Data.Total.ToString("N0")</strong><small>@Model.Data.Period.Label</small></div>
+</section>
+<section class="schedule-section">
+    <div class="section-title"><h2>Schedule a run</h2></div>
+    <div class="panel schedule-panel">
+        <p>Run a check for this league on the next scheduler tick. It will be due from the start of the current hour (server local time).</p>
+        @if (TempData["ScheduledRun"] is string message)
+        {
+            <p class="schedule-success" role="status">@message</p>
+        }
+        @if (Model.ScheduleError is not null)
+        {
+            <p class="schedule-error" role="alert">@Model.ScheduleError</p>
+        }
+        <form asp-action="ScheduleRun" asp-route-leagueId="@Model.Id" method="post">
+            <input type="hidden" name="period" value="@Model.Data.Period.Query">
+            <label for="run-notes">Note for the run</label>
+            <textarea id="run-notes" name="notes" rows="3" maxlength="2000" placeholder="Optional instructions for this check"></textarea>
+            <button type="submit">Schedule run →</button>
+        </form>
+    </div>
+</section>
+<section class="runs-section">
+    <div class="section-title"><h2>Recent runs</h2><span>@Model.Runs.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
+    @if (Model.Runs.Total > 0)
+    {
+        <div class="panel call-list">
+            @foreach (var run in Model.Runs.Runs)
+            {
+                <partial name="_Run" model="run" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="panel runs-empty">@(Model.Runs.DatabaseExists ? "No runs in this date range. Try All time or check back later." : "The schedule database or Runs table was not found. Check the writer’s location or set SCHEDULE_DB_PATH.")</div>
+    }
+    <a class="history-link" asp-action="Runs" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query">View all runs →</a>
+</section>
+@if (Model.Data.Total == 0)
+{
+    <partial name="_EmptyCalls" model="Model.Data.DatabaseExists" />
+}
+else
+{
+    <div class="columns">
+        <section class="league-section">
+            <div class="section-title"><h2>Calls by tool</h2><span>EXPAND TO VIEW CALLS</span></div>
+            <div class="panel tool-list">
+                @{ var max = Model.Data.Tools.Max(t => t.Calls); }
+                @foreach (var tool in Model.Data.Tools)
+                {
+                    <details class="tool-group">
+                        <summary>
+                            <div class="bar-label"><span>@(string.IsNullOrEmpty(tool.Name) ? "(unnamed)" : tool.Name)</span><strong>@tool.Calls.ToString("N0") calls</strong></div>
+                            <div class="track"><div style="width:@((100.0 * tool.Calls / max).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%"></div></div>
+                            <span class="chevron" aria-hidden="true"></span>
+                        </summary>
+                        <div class="tool-entries"><div class="table-wrap"><table>
+                            <thead><tr><th>RECORDED AT</th><th>PARAMETERS</th></tr></thead>
+                            <tbody>
+                                @foreach (var call in tool.Entries)
+                                {
+                                    <tr><td><time>@DashboardFormatting.Time(call.Timestamp)</time></td><td><pre>@(string.IsNullOrWhiteSpace(call.Arguments) ? "(none)" : call.Arguments)</pre></td></tr>
+                                }
+                            </tbody>
+                        </table></div></div>
+                    </details>
+                }
+            </div>
+        </section>
+        <section class="league-section">
+            <div class="section-title"><h2>Daily activity</h2><span>EXPAND FOR TOOL COUNTS</span></div>
+            <div class="panel day-list">
+                @{ var dayMax = Model.Data.Days.Max(d => d.Calls); }
+                @foreach (var day in Model.Data.Days)
+                {
+                    <details class="day-group">
+                        <summary class="day-row">
+                            <time>@day.Day</time><div class="track"><div style="width:@((100.0 * day.Calls / dayMax).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%"></div></div>
+                            <strong>@day.Calls.ToString("N0")</strong><span class="chevron" aria-hidden="true"></span>
+                        </summary>
+                        <ul class="day-breakdown">
+                            @foreach (var tool in day.Tools)
+                            {
+                                <li><span>@(string.IsNullOrEmpty(tool.Name) ? "(unnamed)" : tool.Name)</span><strong>@tool.Calls.ToString("N0")</strong></li>
+                            }
+                        </ul>
+                    </details>
+                }
+            </div>
+        </section>
+    </div>
+    <a class="history-link" asp-action="History" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query">View full call history →</a>
+}

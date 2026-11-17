@@ -1,0 +1,29 @@
+@model RunsViewModel
+@if (Model.Data.Total == 0)
+{
+    <section class="empty">
+        <h2>No runs to show</h2>
+        <p>@(Model.Data.DatabaseExists ? "There are no scheduled runs in this date range. Try All time or check back later." : "The schedule database or Runs table was not found. Check the writer’s location or set SCHEDULE_DB_PATH.")</p>
+    </section>
+}
+else
+{
+    <div class="section-title"><h2>Scheduled runs</h2><span>@Model.Data.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
+    <div class="panel call-list">
+        @foreach (var run in Model.Data.Runs)
+        {
+            <partial name="_Run" model="run" />
+        }
+    </div>
+    <nav class="pagination" aria-label="Run pages">
+        @if (Model.Data.Page > 1)
+        {
+            <a asp-action="Runs" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query" asp-route-page="@(Model.Data.Page - 1)">← Newer</a>
+        }
+        <span>PAGE @Model.Data.Page.ToString("N0") OF @Model.Data.PageCount.ToString("N0")</span>
+        @if (Model.Data.Page < Model.Data.PageCount)
+        {
+            <a asp-action="Runs" asp-route-leagueId="@Model.Id" asp-route-period="@Model.Data.Period.Query" asp-route-page="@(Model.Data.Page + 1)">Older →</a>
+        }
+    </nav>
+}

@@ -1,0 +1,44 @@
+@model ScheduledRun
+@{
+    var status = !Model.StatusAvailable ? "STATUS UNAVAILABLE" : Model.ExecutedAt is not null ? "COMPLETED"
+        : Model.Body is not null ? "AWAITING DELIVERY" : "SCHEDULED";
+    var title = !string.IsNullOrWhiteSpace(Model.Subject) && !string.IsNullOrWhiteSpace(Model.Body)
+        ? Model.Subject : string.IsNullOrWhiteSpace(Model.Notes) ? "Scheduled check" : Model.Notes;
+    var runClass = !Model.StatusAvailable || Model.ExecutedAt is not null ? "" : Model.Body is null ? " run-pending" : " run-undelivered";
+}
+<details class="call run-item@runClass">
+    <summary>
+        <span class="call-name">
+            @title
+            @if (Model.StatusAvailable && Model.ExecutedAt is null)
+            {
+                <span class="run-status">@(Model.Body is null ? "NOT RUN YET" : "AWAITING DELIVERY")</span>
+            }
+        </span>
+        <time>Scheduled · @DashboardFormatting.Time(Model.ScheduledAt)</time><span class="chevron" aria-hidden="true"></span>
+    </summary>
+    <div class="call-arguments run-details">
+        <span>@status</span>
+        @if (Model.ExecutedAt is not null)
+        {
+            <p>Executed · @DashboardFormatting.Time(Model.ExecutedAt)</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p>Notes · @Model.Notes</p>
+        }
+        @if (Model.Subject is not null)
+        {
+            <p>Subject · @Model.Subject</p>
+        }
+        @if (Model.Body is not null)
+        {
+            <a class="report-link" asp-controller="Dashboard" asp-action="Report" asp-route-leagueId="@ViewContext.RouteData.Values["leagueId"]" asp-route-key="@Model.Key" target="_blank" rel="noopener noreferrer">Open full-screen report ↗</a>
+            <iframe title="Report: @title" sandbox="" referrerpolicy="no-referrer" srcdoc="@Model.Body"></iframe>
+        }
+        else
+        {
+            <p>No report saved for this run.</p>
+        }
+    </div>
+</details>

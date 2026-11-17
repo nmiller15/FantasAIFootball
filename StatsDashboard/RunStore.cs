@@ -5,6 +5,7 @@ namespace StatsDashboard;
 public record ScheduledRun(int Key, string ScheduledAt, string Notes, string? ExecutedAt,
     string? Subject, string? Body, bool StatusAvailable = true);
 public record RunTiming(string? LastExecuted, string? NextScheduled);
+public record RunReport(string LeagueId, int Key, string? Subject, string Body);
 
 public record RunsData(Period Period, string LeagueId, long Total, IReadOnlyList<ScheduledRun> Runs,
     bool DatabaseExists, int Page, int PageSize = 20)
@@ -37,6 +38,51 @@ public class RunStore(string databasePath)
         var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         while (reader.Read()) columns.Add(reader.GetString(1));
         return columns;
+    }
+
+    public async Task ScheduleRunAsync(string leagueId, string notes)
+    {
+        // Never create a database here: the writer owns the schema and migrations.
+        if (!File.Exists(_databasePath))
+            throw new InvalidOperationException("The schedule database was not found.");
+
+        await using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = _databasePath,
+            Mode = SqliteOpenMode.ReadWrite,
+            Pooling = false
+        }.ToString());
+        await connection.OpenAsync();
+
+        var columns = Columns(connection);
+        if (!new[] { "LeagueId", "RunDateTime", "Notes", "InsertedAt" }.All(columns.Contains))
+            throw new InvalidOperationException("The schedule database does not have the expected Runs table.");
+
+        var now = DateTime.Now;
+        var thisHour = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Local);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Runs (LeagueId, RunDateTime, Notes, InsertedAt) VALUES (@league, @runAt, @notes, @insertedAt)";
+        command.Parameters.AddWithValue("@league", leagueId);
+        command.Parameters.AddWithValue("@runAt", thisHour.ToString("o"));
+        command.Parameters.AddWithValue("@notes", notes);
+        command.Parameters.AddWithValue("@insertedAt", now.ToString("o"));
+        await command.ExecuteNonQueryAsync();
+    }
+
+    public RunReport? GetReport(string leagueId, int key)
+    {
+        using var connection = Open();
+        if (connection is null) return null;
+        var columns = Columns(connection);
+        if (!columns.Contains("ReportBody") || !columns.Contains("ReportSubject")) return null;
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT ReportSubject, ReportBody FROM Runs WHERE Key = @key AND LeagueId = @league";
+        command.Parameters.AddWithValue("@key", key);
+        command.Parameters.AddWithValue("@league", leagueId);
+        using var reader = command.ExecuteReader();
+        if (!reader.Read() || reader.IsDBNull(1)) return null;
+        return new RunReport(leagueId, key, reader.IsDBNull(0) ? null : reader.GetString(0), reader.GetString(1));
     }
 
     public IReadOnlyList<string> GetLeagueIds(Period period)

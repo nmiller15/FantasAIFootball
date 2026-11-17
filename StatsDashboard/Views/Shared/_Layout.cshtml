@@ -1,0 +1,60 @@
+@model DashboardViewModel
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>FantasAI Football Dashboard</title>
+    <link rel="stylesheet" href="~/style.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/calls.css" asp-append-version="true">
+</head>
+<body>
+    <div class="shell">
+        <header class="header">
+            <a class="brand" asp-controller="Dashboard" asp-action="Overview">FANTAS<span>AI</span>FOOTBALL <small>/ STATS</small></a>
+            <span class="header-note">LEAGUE ACTIVITY</span>
+        </header>
+        <main>
+            @if (Model.LeagueId is not null)
+            {
+                <nav class="breadcrumb">
+                    <a asp-controller="Dashboard" asp-action="Overview" asp-route-period="@Model.Period?.Query">ALL LEAGUES</a> <span>/</span>
+                    @if (Model.Action is "History" or "Runs")
+                    {
+                        <a asp-controller="Dashboard" asp-action="League" asp-route-leagueId="@Model.LeagueId" asp-route-period="@Model.Period?.Query">@(Model.LeagueName ?? Model.LeagueId)</a> <span>/</span>
+                        @(Model.Action == "Runs" ? "RUNS" : "HISTORY")
+                    }
+                    else
+                    {
+                        @(Model.LeagueName ?? Model.LeagueId)
+                    }
+                </nav>
+            }
+            <div class="intro">
+                <div>
+                    <p class="eyebrow">LIVE LEAGUE ACTIVITY</p>
+                    <h1>@Model.Title</h1>
+                    @if (Model.LeagueId is not null)
+                    {
+                        <p class="headline-id">LEAGUE ID · @Model.LeagueId</p>
+                    }
+                    <p class="subhead">Runs and tool activity, organized by league. Times are recorded in the writer’s local time.</p>
+                </div>
+                @if (Model.Period is { } period)
+                {
+                    <nav class="periods" aria-label="Date range">
+                        @foreach (var choice in new[] { Period.Parse("7"), Period.Parse("30"), Period.Parse("all") })
+                        {
+                            <a asp-controller="Dashboard" asp-action="@Model.Action" asp-route-leagueId="@Model.LeagueId"
+                               asp-route-period="@choice.Query" class="@(choice.Query == period.Query ? "active" : "")">@choice.Label</a>
+                        }
+                    </nav>
+                }
+            </div>
+            @RenderBody()
+        </main>
+        <footer>FANTASAIFOOTBALL · COUNTS INCLUDE ATTEMPTED TOOL CALLS · <a href="">REFRESH DATA ↗</a></footer>
+    </div>
+</body>
+</html>
