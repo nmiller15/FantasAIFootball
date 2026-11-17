@@ -4,6 +4,30 @@ namespace StatsDashboard;
 
 public static class DashboardFormatting
 {
+    private const string FullWidthReportStyles = """
+        <style>
+            /* The saved email is intentionally constrained to 600px for mail clients.
+               Only the full-screen viewer expands its presentation tables. */
+            .email-bg, .email-bg > tbody, .email-bg > tbody > tr,
+            .email-bg > tbody > tr > td, .container, .container > tbody,
+            .container > tbody > tr, .container > tbody > tr > td {
+                display: block !important;
+                width: 100% !important;
+                max-width: none !important;
+                box-sizing: border-box !important;
+            }
+            .email-bg > tbody > tr > td { padding: 0 !important; }
+            .container { border-radius: 0 !important; }
+            .container > tbody > tr > td { padding: 24px 32px !important; }
+        </style>
+        """;
+
+    public static string FullWidthReport(string body)
+    {
+        var headEnd = body.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+        return headEnd < 0 ? FullWidthReportStyles + body : body.Insert(headEnd, FullWidthReportStyles);
+    }
+
     public static string Time(string? value) =>
         value is { Length: >= 19 } ? value[..10] + " " + value.Substring(11, 8) : value ?? "—";
 

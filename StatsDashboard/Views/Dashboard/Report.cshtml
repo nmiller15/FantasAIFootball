@@ -16,6 +16,6 @@
         <span>@(Model.Subject ?? "Run report")</span>
         <a asp-controller="Dashboard" asp-action="Runs" asp-route-leagueId="@Model.LeagueId">← All runs</a>
     </header>
-    <iframe title="Report: @(Model.Subject ?? "Run report")" sandbox="" referrerpolicy="no-referrer" srcdoc="@Model.Body"></iframe>
+    <iframe title="Report: @(Model.Subject ?? "Run report")" sandbox="" referrerpolicy="no-referrer" srcdoc="@DashboardFormatting.FullWidthReport(Model.Body)"></iframe>
 </body>
 </html>
