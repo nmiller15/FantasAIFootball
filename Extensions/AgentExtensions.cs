@@ -27,6 +27,12 @@ public static class AgentExtensions
 
         agent.AddTool(new Function
         {
+            Name = "GetLeagueRosterPlayers",
+            Description = "Gets every team's CURRENT roster with owner/team names and player IDs, names, positions, and starter/bench/reserve slots. Use this league-wide snapshot to verify waiver availability and identify real trade counterparties. A player on any roster is NOT a free agent. Returns an array of LeagueRosterSnapshot."
+        });
+
+        agent.AddTool(new Function
+        {
             Name = "GetMyRoster",
             Description = "Gets the roster for the current user's team. Returns a Roster."
         });

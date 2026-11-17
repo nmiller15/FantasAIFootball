@@ -102,6 +102,49 @@ public class LeagueRepository
         return rosters ?? [];
     }
 
+    public async Task<List<LeagueRosterSnapshot>> GetLeagueRosterPlayers()
+    {
+        var rosters = await GetRosters();
+        var users = (await GetUsers()).ToDictionary(u => u.UserId);
+        var snapshots = new List<LeagueRosterSnapshot>();
+
+        foreach (var roster in rosters)
+        {
+            if (roster.Players == null)
+            {
+                throw new InvalidOperationException($"Roster {roster.RosterId} has no player list; league ownership cannot be verified.");
+            }
+
+            users.TryGetValue(roster.OwnerId ?? "", out var owner);
+            var starters = (roster.Starters ?? []).ToHashSet();
+            var reserve = (roster.Reserve ?? []).ToHashSet();
+            var snapshot = new LeagueRosterSnapshot
+            {
+                RosterId = roster.RosterId,
+                OwnerId = roster.OwnerId ?? "",
+                OwnerName = owner?.DisplayName ?? owner?.Username ?? "Unknown owner",
+                TeamName = owner?.Metadata?.TeamName ?? "",
+            };
+
+            foreach (var playerId in roster.Players)
+            {
+                var player = await GetPlayer(playerId);
+                var name = player == null ? "" : $"{player.FirstName} {player.LastName}".Trim();
+                snapshot.Players.Add(new LeagueRosterPlayer
+                {
+                    PlayerId = playerId,
+                    Name = string.IsNullOrWhiteSpace(name) ? $"Unknown player ({playerId})" : name,
+                    Position = player?.Position ?? "",
+                    Slot = starters.Contains(playerId) ? "starter" : reserve.Contains(playerId) ? "reserve" : "bench"
+                });
+            }
+
+            snapshots.Add(snapshot);
+        }
+
+        return snapshots;
+    }
+
     public async Task<Roster?> GetMyRoster()
     {
         return await GetUserRoster(UserId);
@@ -138,10 +181,10 @@ public class LeagueRepository
         return transactions ?? [];
     }
 
-    public async Task<Player> GetPlayer(string playerId)
+    public async Task<Player?> GetPlayer(string playerId)
     {
         var cacheResult = await _playerCache.Get(playerId);
-        if (cacheResult != null && cacheResult.InsertedAt.Day > DateTime.Today.AddDays(-1).Day)
+        if (cacheResult != null && cacheResult.InsertedAt >= DateTime.Now.AddDays(-1))
         {
             return JsonSerializer.Deserialize<Player>(cacheResult.Json);
         }
@@ -151,6 +194,7 @@ public class LeagueRepository
         var response = await Get("players/nfl");
 
         var players = JsonSerializer.Deserialize<Dictionary<string, Player>>(await response.Content.ReadAsStreamAsync());
+        if (players == null) return null;
         await _playerCache.Cache(players);
 
         var player = players.GetValueOrDefault(playerId);

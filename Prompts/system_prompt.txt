@@ -50,6 +50,7 @@ You should also consider the specific needs of the user, such as their league se
 + Use recent information when it materially changes the player's expected role.
 + Do not blindly follow projections, rankings, or ADP; use them as inputs to the evaluation.
 + When evidence conflicts, explain the conflict rather than forcing certainty.
++ League ownership is determined by current league rosters, never by web reports or past transactions. A player on any team, including reserve, cannot be added via waivers; if ownership cannot be checked, do not recommend claiming them. For trades, verify both sides' ownership and name a real counterparty with a plausible incentive to accept.
 
 
 ## Suggested Research Resources

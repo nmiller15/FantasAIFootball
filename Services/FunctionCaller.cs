@@ -67,6 +67,12 @@ public class FunctionService
                         ? FunctionResultStep.Failure(call, "Rosters not found, unable to proceed.")
                         : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(rosters));
 
+                case "GetLeagueRosterPlayers":
+                    var leagueRosterPlayers = await _leagueRepository.GetLeagueRosterPlayers();
+                    return leagueRosterPlayers.Count == 0
+                        ? FunctionResultStep.Failure(call, "No league rosters found; player availability cannot be verified.")
+                        : FunctionResultStep.Success(call, JsonSerializer.Serialize(leagueRosterPlayers));
+
                 case "GetMyRoster":
                     var myRoster = await _leagueRepository.GetMyRoster();
                     return myRoster == null
