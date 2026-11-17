@@ -4,7 +4,7 @@ namespace StatsDashboard;
 
 public record ScheduledRun(int Key, string ScheduledAt, string Notes, string? ExecutedAt,
     string? Subject, string? Body, bool StatusAvailable = true);
-public record RunTiming(string? LastExecuted, string? NextScheduled);
+public record RunTiming(string? LastExecuted, string? NextScheduled, string? DueRun);
 public record RunReport(string LeagueId, int Key, string? Subject, string Body);
 
 public record RunsData(Period Period, string LeagueId, long Total, IReadOnlyList<ScheduledRun> Runs,
@@ -109,15 +109,19 @@ public class RunStore(string databasePath)
             return new Dictionary<string, RunTiming>();
         using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT LeagueId, MAX(ExecutedAt), MIN(CASE WHEN ExecutedAt IS NULL THEN RunDateTime END)
+            SELECT LeagueId, MAX(ExecutedAt),
+                MIN(CASE WHEN ExecutedAt IS NULL AND datetime(RunDateTime) > datetime(@now) THEN RunDateTime END),
+                MIN(CASE WHEN ExecutedAt IS NULL AND datetime(RunDateTime) <= datetime(@now) THEN RunDateTime END)
             FROM Runs GROUP BY LeagueId
             """;
+        command.Parameters.AddWithValue("@now", DateTime.Now.ToString("o"));
         using var reader = command.ExecuteReader();
         var timings = new Dictionary<string, RunTiming>(StringComparer.Ordinal);
         while (reader.Read())
             timings[reader.IsDBNull(0) ? "" : reader.GetString(0)] = new(
                 reader.IsDBNull(1) ? null : reader.GetString(1),
-                reader.IsDBNull(2) ? null : reader.GetString(2));
+                reader.IsDBNull(2) ? null : reader.GetString(2),
+                reader.IsDBNull(3) ? null : reader.GetString(3));
         return timings;
     }
 

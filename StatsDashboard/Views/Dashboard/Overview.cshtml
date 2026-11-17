@@ -28,7 +28,11 @@ else
                 </div>
                 <div class="card-run-times">
                     <p>LAST EXECUTED · @DashboardFormatting.RunTime(timing?.LastExecuted, today)</p>
-                    <p>NEXT SCHEDULED · @DashboardFormatting.RunTime(timing?.NextScheduled, today)</p>
+                    <p class="next-run">NEXT SCHEDULED · @DashboardFormatting.RunTime(timing?.NextScheduled, today)</p>
+                    @if (timing?.DueRun is not null)
+                    {
+                        <p class="due-run">DUE RUN · @DashboardFormatting.RunTime(timing.DueRun, today)</p>
+                    }
                 </div>
                 <p>LAST CALL · @DashboardFormatting.Time(league.LastCall)</p>
             </a>

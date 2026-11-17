@@ -69,7 +69,9 @@
 .runs-empty{padding:24px;color:#a2b2bc;font-size:13px}
 .card-run-times{border-top:1px solid #2c3b42;padding-top:16px;margin-top:22px}
 .league-card .card-run-times p{border:0;padding:0;margin:0 0 10px;line-height:1.5;overflow-wrap:anywhere}
-.league-card .card-run-times p:last-child{color:#a5e8c7;margin-bottom:0}
+.league-card .card-run-times p:last-child{margin-bottom:0}
+.league-card .card-run-times .next-run{color:#a5e8c7}
+.league-card .card-run-times .due-run{color:#e0bb81}
 .run-details p{font-size:13px;line-height:1.6;color:#cde5d8;overflow-wrap:anywhere}
 .run-details .report-link{display:inline-block;margin-top:12px;color:#a5e8c7;font-size:13px;font-weight:700}
 .run-details .report-link:hover{text-decoration:underline}

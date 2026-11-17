@@ -11,7 +11,7 @@ public static class DashboardFormatting
     {
         if (string.IsNullOrWhiteSpace(value)) return "—";
         if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-            return Time(value);
+            return "—";
 
         var days = DateOnly.FromDateTime(date.Date).DayNumber - today.DayNumber;
         var relative = days switch

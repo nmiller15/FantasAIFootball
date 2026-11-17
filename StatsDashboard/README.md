@@ -4,7 +4,7 @@ A standalone ASP.NET Core site for the `ToolCallRecords` and `Runs` tables writt
 
 The dashboard uses MVC: `Controllers/DashboardController.cs` loads the data, `DashboardViewModels.cs` supplies the views, and `Views/Dashboard/` and `Views/Shared/` render the pages. The saved report HTML is displayed only in a sandboxed iframe.
 
-League names come from Sleeper's public `GET /v1/league/{leagueId}` API. The overview shows the name with the ID underneath, plus the last execution and earliest pending run for each league; league pages show the five most recent runs and their expandable reports above tool activity. Names are cached for six hours. If Sleeper is unavailable or a league cannot be found, the ID is shown instead (and the failed lookup is cached for five minutes). The dashboard still works without Sleeper access.
+League names come from Sleeper's public `GET /v1/league/{leagueId}` API. The overview shows the name with the ID underneath, plus the last execution, next future run, and any due or overdue run for each league; league pages show the five most recent runs and their expandable reports above tool activity. Names are cached for six hours. If Sleeper is unavailable or a league cannot be found, the ID is shown instead (and the failed lookup is cached for five minutes). The dashboard still works without Sleeper access.
 
 ## Run
 
