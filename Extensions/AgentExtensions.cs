@@ -28,7 +28,7 @@ public static class AgentExtensions
         agent.AddTool(new Function
         {
             Name = "GetLeagueRosterPlayers",
-            Description = "Gets every team's CURRENT roster with owner/team names and player IDs, names, positions, and starter/bench/reserve slots. Use this league-wide snapshot to verify waiver availability and identify real trade counterparties. A player on any roster is NOT a free agent. Returns an array of LeagueRosterSnapshot."
+            Description = "Gets every team's CURRENT roster with owner/team names and player IDs, names, positions, and starter/bench/reserve slots. Use for exploring trade counterparties; for any pickup or waiver claim use CheckPlayerAvailability instead. Returns an array of LeagueRosterSnapshot."
         });
 
         agent.AddTool(new Function
@@ -76,6 +76,20 @@ public static class AgentExtensions
                     ["playerId"] = new FunctionParameter { Type = "string", Description = "The id of the player to retrieve." }
                 },
                 Required = ["playerId"]
+            }
+        });
+
+        agent.AddTool(new Function
+        {
+            Name = "CheckPlayerAvailability",
+            Description = "Checks a player's current availability in this Sleeper league by full name. Resolves the name to a unique Sleeper player ID and checks every current league roster. Returns PlayerAvailability with status free_agent, rostered, unknown, or ambiguous; rostered includes the owner. REQUIRED immediately before every recommendation to add, claim, or pick up a player. Only free_agent permits a pickup recommendation; errors or other statuses do not.",
+            Parameters = new FunctionParameters
+            {
+                Properties = new()
+                {
+                    ["playerName"] = new FunctionParameter { Type = "string", Description = "Full name of the proposed pickup (e.g. 'Bijan Robinson')." }
+                },
+                Required = ["playerName"]
             }
         });
 

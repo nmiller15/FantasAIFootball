@@ -201,6 +201,73 @@ public class LeagueRepository
         return player;
     }
 
+    public async Task<PlayerAvailability> CheckPlayerAvailability(string playerName)
+    {
+        var result = new PlayerAvailability { PlayerName = playerName.Trim() };
+        if (string.IsNullOrWhiteSpace(result.PlayerName))
+        {
+            result.Explanation = "Provide a player's full name.";
+            return result;
+        }
+
+        // The name must resolve to one Sleeper player ID before an absent roster entry
+        // can mean anything. Refresh the catalog when the cache is missing or stale.
+        if (await _playerCache.GetLastUpdated() is not { } updated || updated < DateTime.Now.AddDays(-1))
+        {
+            using var response = await Get("players/nfl");
+            var players = JsonSerializer.Deserialize<Dictionary<string, Player>>(await response.Content.ReadAsStreamAsync());
+            if (players == null || players.Count == 0)
+            {
+                result.Explanation = "The Sleeper player catalog is unavailable; availability cannot be verified.";
+                return result;
+            }
+            await _playerCache.Cache(players);
+        }
+
+        var matches = (await _playerCache.FindByName(result.PlayerName))
+            .GroupBy(p => p.PlayerId).Select(g => g.First()).ToList();
+        if (matches.Count != 1)
+        {
+            result.Status = matches.Count == 0 ? "unknown" : "ambiguous";
+            result.Explanation = matches.Count == 0
+                ? "No exact player-name match in Sleeper; check the spelling. Do not assume this player is a free agent."
+                : "Multiple Sleeper player IDs match this name; availability cannot be determined by name alone.";
+            return result;
+        }
+
+        var player = matches[0];
+        if (string.IsNullOrWhiteSpace(player.PlayerId))
+        {
+            result.Explanation = "Sleeper returned a player without an ID; availability cannot be verified.";
+            return result;
+        }
+        result.PlayerId = player.PlayerId;
+        result.PlayerName = $"{player.FirstName} {player.LastName}".Trim();
+
+        var rosters = await GetRosters();
+        if (rosters.Count == 0 || rosters.Any(r => r.Players == null))
+        {
+            result.Explanation = "Current league rosters are unavailable or incomplete; availability cannot be verified.";
+            return result;
+        }
+
+        var roster = rosters.FirstOrDefault(r => r.Players.Contains(player.PlayerId));
+        if (roster == null)
+        {
+            result.Status = "free_agent";
+            result.Explanation = "Player is absent from every current league roster. Waiver processing or a pending claim may still restrict when they can be added.";
+            return result;
+        }
+
+        result.Status = "rostered";
+        result.RosterId = roster.RosterId;
+        var owner = (await GetUsers()).FirstOrDefault(u => u.UserId == roster.OwnerId);
+        result.OwnerName = owner?.DisplayName ?? owner?.Username ?? "Unknown owner";
+        result.TeamName = owner?.Metadata?.TeamName;
+        result.Explanation = "Player is on a league roster and cannot be claimed as a free agent; consider a trade with the owner.";
+        return result;
+    }
+
     public async Task<NflState> GetNflState()
     {
         var response = await Get("state/nfl");

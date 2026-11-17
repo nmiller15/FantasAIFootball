@@ -4,21 +4,21 @@ Decide whether any action is needed today — across **lineups**, **waivers**, a
 
 ## 1. Gather context
 
-Call `GetNflState`, `GetLeague`, `GetMyRoster`, `GetLeagueRosterPlayers`, `GetMatchups` for the relevant week, `GetTransactions` for the current and prior week, `GetMemories`, and `GetRecommendations`. The league-wide roster snapshot includes owner names and named players; use it for both waiver and trade decisions. If it fails or is incomplete, do not claim that anyone is available or propose a trade involving unverified ownership.
+Call `GetNflState`, `GetLeague`, `GetMyRoster`, `GetLeagueRosterPlayers`, `GetMatchups` for the relevant week, `GetTransactions` for the current and prior week, `GetMemories`, and `GetRecommendations`. Use the league-wide roster snapshot to examine trade partners, NOT to establish pickup eligibility. Verify each individual pickup with `CheckPlayerAvailability`. If the snapshot fails or is incomplete, do not propose a trade involving unverified ownership.
 
 Establish: who is a starter vs. bench, your roster needs and waiver priority, your standing watch list, and every trade proposal pending in either direction. Use the run context above for the date, week, and waiver deadline — never infer them yourself. Current rosters, not past transactions, determine who owns a player now.
 
 ## 2. Open only the gates that apply
 
 - **Lineup** — open only if games remain unplayed this week and at least one starter is questionable: injury, unclear status, role change, or a bench option clearly better under this league's scoring.
-- **Waiver** — open if the waiver window is still open, or a player you want could be claimed before the next deadline. When the deadline is less than 24 hours away this outranks everything else. Check `GetLeagueRosterPlayers` immediately before recommending each add/claim: if the player ID is on ANY team (including reserve), they are not a waiver option. Transactions are historical and cannot establish current availability. If identity/ownership is uncertain, omit the waiver recommendation rather than guessing.
+- **Waiver / pickup** — open if the waiver window is still open, or a player you want could be claimed before the next deadline. When the deadline is less than 24 hours away this outranks everything else. For EACH proposed add, claim, free-agent pickup, or add/drop, FIRST call `CheckPlayerAvailability` with the incoming player's full name, before researching the pickup or recording/reporting it. Recommend the pickup ONLY if the tool returns `status: "free_agent"` for that player. `rostered`, `unknown`, `ambiguous`, tool failure, or name mismatch means no pickup recommendation. Do not use transactions, web search, or the roster dump as a substitute. Being a free agent does not guarantee a player has cleared waivers; still consider league waiver timing.
 - **Trade** — evaluate every run when trading is allowed by the run context. Examine other teams' players and roster needs in `GetLeagueRosterPlayers`, not just recent transactions. Identify at least one concrete potential exchange: a player on your roster to send, a player on a specific other roster to receive, and why that manager might accept based on their needs. Compare the net effect for BOTH teams against their starters and replacement options. Activity in `GetTransactions` can inform a proposal but is not a prerequisite. Surface only a plausible, beneficial proposal; if none qualifies, say no trade is warranted. Never present an owned player as a waiver target — acquire them only through a trade with the named owner.
 
 If nothing passes, go to step 5. You must still complete the scheduling step before finishing.
 
 ## 3. Research only what an open gate requires
 
-Verify every injury or playing-status claim against a real source before acting on it. Never research a player you would not start, claim, or trade. Web rankings and news do not establish league ownership; use the current league roster snapshot for that.
+Verify every injury or playing-status claim against a real source before acting on it. Never research a player you would not start, claim, or trade. Web rankings and news do not establish league ownership; use `CheckPlayerAvailability` for pickups and current rosters for trades.
 
 ## 4. Judge against replacement, not rankings
 
@@ -81,7 +81,7 @@ One line on why, plus the next date that would change that.
 ## Rules
 
 - Never recommend a change to fill a lineup spot that does not exist, or to sit a player you have no credible replacement for.
-- For every waiver recommendation, confirm the player is absent from ALL teams in the current league roster snapshot. If a target is owned, either evaluate a specific trade with that owner or skip them. Recheck before writing the final answer.
+- Never recommend picking up a player without first getting `status: "free_agent"` for their exact name from `CheckPlayerAvailability` in this run. Check before `AddRecommendation` and the final answer, even if a past run said they were available. If rostered, evaluate a specific trade with the named owner or skip them.
 - A trade recommendation must name the other team's owner, the exact players to send and receive, and the reason the deal is plausible for both sides. Do not invent trades just to fill a category.
 - No filler, no low-conviction padding, and no listing players you would not act on.
 - Explicitly flag anything you previously flagged that has now resolved, changed, or been contradicted.

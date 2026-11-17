@@ -112,6 +112,16 @@ public class FunctionService
                         ? FunctionResultStep.Failure(call, $"Player '{playerId}' not found.")
                         : FunctionResultStep.Success(call, System.Text.Json.JsonSerializer.Serialize(player));
 
+                case "CheckPlayerAvailability":
+                    if (!call.Arguments.TryGetProperty("playerName", out var availabilityNameElement) ||
+                        availabilityNameElement.ValueKind != JsonValueKind.String ||
+                        string.IsNullOrWhiteSpace(availabilityNameElement.GetString()))
+                    {
+                        return FunctionResultStep.Failure(call, "Missing or invalid 'playerName': provide the player's full name.");
+                    }
+                    var availability = await _leagueRepository.CheckPlayerAvailability(availabilityNameElement.GetString()!);
+                    return FunctionResultStep.Success(call, JsonSerializer.Serialize(availability));
+
                 case "GetNflState":
                     var nflState = await _leagueRepository.GetNflState();
                     return nflState == null
