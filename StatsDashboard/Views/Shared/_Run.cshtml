@@ -2,8 +2,9 @@
 @{
     var status = !Model.StatusAvailable ? "STATUS UNAVAILABLE" : Model.ExecutedAt is not null ? "COMPLETED"
         : Model.Body is not null ? "AWAITING DELIVERY" : "SCHEDULED";
-    var title = !string.IsNullOrWhiteSpace(Model.Subject) && !string.IsNullOrWhiteSpace(Model.Body)
-        ? Model.Subject : string.IsNullOrWhiteSpace(Model.Notes) ? "Scheduled check" : Model.Notes;
+    var title = !string.IsNullOrWhiteSpace(Model.Notes) ? Model.Notes
+        : !string.IsNullOrWhiteSpace(Model.Subject) && !string.IsNullOrWhiteSpace(Model.Body)
+            ? Model.Subject : "Scheduled check";
     var runClass = !Model.StatusAvailable || Model.ExecutedAt is not null ? "" : Model.Body is null ? " run-pending" : " run-undelivered";
 }
 <details class="call run-item@runClass">
