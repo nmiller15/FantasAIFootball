@@ -1,0 +1,17 @@
+.memories-section{margin-bottom:52px}
+.memories-empty{padding:24px;color:#98a9b4}
+.memory-list{display:grid;gap:14px}
+.memory-card{padding:22px 26px}
+.memory-meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:#98a9b4}
+.memory-meta span{color:#82e7b8;font-weight:700}
+.memory-content{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:16px 0;color:#eaf0f4}
+.memory-actions{display:flex;align-items:start;gap:18px;flex-wrap:wrap}
+.memory-actions summary,.memory-remove{color:#82e7b8;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.memory-actions summary:hover,.memory-remove:hover{color:#c3ffe0}
+.memory-remove{background:none;border:0;padding:0;color:#f0a2a2}
+.memory-remove:hover{color:#ffd0d0}
+.memory-edit{flex:1;min-width:220px}
+.memory-edit form{margin-top:16px;display:grid;gap:10px}
+.memory-edit label{font-size:12px;color:#98a9b4}
+.memory-edit textarea{width:100%;border:1px solid #3b5055;border-radius:8px;background:#0c1119;color:#eaf0f4;padding:12px;font:inherit;resize:vertical}
+.memory-edit button{justify-self:start;border:0;border-radius:7px;background:#82e7b8;color:#0c1119;padding:10px 16px;font-weight:700;cursor:pointer}

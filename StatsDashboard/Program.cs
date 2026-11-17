@@ -8,9 +8,13 @@ if (string.IsNullOrWhiteSpace(databasePath))
 var schedulePath = builder.Configuration["SCHEDULE_DB_PATH"];
 if (string.IsNullOrWhiteSpace(schedulePath))
     schedulePath = Path.Combine(UserData.GetAppDataLocation(), "schedule.db");
+var memoryPath = builder.Configuration["MEMORY_DB_PATH"];
+if (string.IsNullOrWhiteSpace(memoryPath))
+    memoryPath = Path.Combine(UserData.GetAppDataLocation(), "memory.db");
 
 builder.Services.AddSingleton(new StatsStore(databasePath));
 builder.Services.AddSingleton(new RunStore(schedulePath));
+builder.Services.AddSingleton(new MemoryStore(memoryPath));
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<LeagueNameService>(client =>

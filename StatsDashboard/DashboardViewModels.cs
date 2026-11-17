@@ -16,7 +16,7 @@ public sealed record OverviewViewModel(OverviewData Data, IReadOnlyDictionary<st
     public override Period? Period => Data.Period;
 }
 
-public sealed record LeagueViewModel(string Id, string Name, LeagueData Data, RunsData Runs,
+public sealed record LeagueViewModel(string Id, string Name, LeagueData Data, RunsData Runs, MemoriesData Memories,
     string? ScheduleError = null) : DashboardViewModel
 {
     public override string Title => string.IsNullOrWhiteSpace(Name) ? Id : Name;

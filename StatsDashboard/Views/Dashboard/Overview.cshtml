@@ -4,7 +4,7 @@
 }
 <section class="metrics">
     <div class="metric"><span>TOTAL TOOL CALLS</span><strong>@Model.Data.Total.ToString("N0")</strong><small>@Model.Data.Period.Label</small></div>
-    <div class="metric"><span>ACTIVE LEAGUES</span><strong>@Model.Data.Leagues.Count.ToString("N0")</strong><small>With recorded activity</small></div>
+    <div class="metric"><span>LEAGUES</span><strong>@Model.Data.Leagues.Count.ToString("N0")</strong><small>With calls, runs, or memories</small></div>
 </section>
 <div class="section-title"><h2>Leagues</h2><span>@Model.Data.Leagues.Count LEAGUES</span></div>
 @if (Model.Data.Leagues.Count == 0)

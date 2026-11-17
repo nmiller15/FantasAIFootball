@@ -23,6 +23,48 @@
         </form>
     </div>
 </section>
+<section class="memories-section">
+    <div class="section-title"><h2>League memories</h2><span>@Model.Memories.Entries.Count.ToString("N0") MEMORIES · ALL TIME</span></div>
+    @if (TempData["MemorySuccess"] is string memorySuccess)
+    {
+        <p class="schedule-success" role="status">@memorySuccess</p>
+    }
+    @if (TempData["MemoryError"] is string memoryError)
+    {
+        <p class="schedule-error" role="alert">@memoryError</p>
+    }
+    @if (Model.Memories.Entries.Count == 0)
+    {
+        <div class="panel memories-empty">@(Model.Memories.DatabaseExists ? "No memories saved for this league yet." : "The memory database or Memories table was not found. Check the writer’s location or set MEMORY_DB_PATH.")</div>
+    }
+    else
+    {
+        <div class="memory-list">
+            @foreach (var memory in Model.Memories.Entries)
+            {
+                <article class="panel memory-card">
+                    <div class="memory-meta"><span>@memory.UserId</span><time>@DashboardFormatting.Time(memory.CreatedAt)</time></div>
+                    <p class="memory-content">@memory.Content</p>
+                    <div class="memory-actions">
+                        <details class="memory-edit">
+                            <summary>Edit</summary>
+                            <form asp-action="EditMemory" asp-route-leagueId="@Model.Id" asp-route-id="@memory.Id" method="post">
+                                <input type="hidden" name="period" value="@Model.Data.Period.Query">
+                                <label for="memory-@memory.Id">Memory content</label>
+                                <textarea id="memory-@memory.Id" name="content" rows="4" maxlength="10000" required>@memory.Content</textarea>
+                                <button type="submit">Save changes</button>
+                            </form>
+                        </details>
+                        <form asp-action="DeleteMemory" asp-route-leagueId="@Model.Id" asp-route-id="@memory.Id" method="post" onsubmit="return confirm('Remove this memory?');">
+                            <input type="hidden" name="period" value="@Model.Data.Period.Query">
+                            <button class="memory-remove" type="submit">Remove</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
 <section class="runs-section">
     <div class="section-title"><h2>Recent runs</h2><span>@Model.Runs.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
     @if (Model.Runs.Total > 0)
