@@ -69,6 +69,32 @@ public class RunStore(string databasePath)
         await command.ExecuteNonQueryAsync();
     }
 
+    public async Task<bool> UpdateRunNotesAsync(string leagueId, int key, string notes)
+    {
+        // The writer owns the schema; never create or migrate a database here.
+        if (!File.Exists(_databasePath)) return false;
+
+        await using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = _databasePath,
+            Mode = SqliteOpenMode.ReadWrite,
+            Pooling = false
+        }.ToString());
+        await connection.OpenAsync();
+        if (!new[] { "Key", "LeagueId", "Notes", "ExecutedAt", "ReportBody" }.All(Columns(connection).Contains))
+            return false;
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            UPDATE Runs SET Notes = @notes
+            WHERE Key = @key AND LeagueId = @league AND ExecutedAt IS NULL AND ReportBody IS NULL
+            """;
+        command.Parameters.AddWithValue("@notes", notes);
+        command.Parameters.AddWithValue("@key", key);
+        command.Parameters.AddWithValue("@league", leagueId);
+        return await command.ExecuteNonQueryAsync() == 1;
+    }
+
     public RunReport? GetReport(string leagueId, int key)
     {
         using var connection = Open();

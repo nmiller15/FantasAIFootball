@@ -25,9 +25,18 @@
 </section>
 <section class="runs-section">
     <div class="section-title"><h2>Recent runs</h2><span>@Model.Runs.Total.ToString("N0") RUNS · EXPAND TO VIEW REPORTS</span></div>
+    @if (TempData["RunSuccess"] is string runSuccess)
+    {
+        <p class="run-message run-success" role="status">@runSuccess</p>
+    }
+    @if (TempData["RunError"] is string runError)
+    {
+        <p class="run-message run-error" role="alert">@runError</p>
+    }
     @if (Model.Runs.Total > 0)
     {
         <div class="panel call-list">
+            @{ ViewData["RunPeriod"] = Model.Runs.Period.Query; }
             @foreach (var run in Model.Runs.Runs)
             {
                 <partial name="_Run" model="run" />

@@ -52,6 +52,25 @@ public class DashboardController(StatsStore store, RunStore runs, MemoryStore me
         return RedirectToAction(nameof(League), new { leagueId, period = range.Query })!;
     });
 
+    [HttpPost("/league/{leagueId}/runs/{key:int}/edit")]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> EditRunNotes(string leagueId, int key, [FromForm] string? notes,
+        [FromForm] string? period, [FromForm] string? returnTo, [FromForm] string? page) => Load(async () =>
+    {
+        if (!KnownLeague(leagueId)) return NotFound();
+        if (notes?.Length > 2000)
+            TempData["RunError"] = "Note must be 2,000 characters or fewer.";
+        else if (!await runs.UpdateRunNotesAsync(leagueId, key, notes ?? ""))
+            return NotFound();
+        else
+            TempData["RunSuccess"] = "Run note updated.";
+
+        var range = Period.Parse(period);
+        return returnTo == nameof(Runs)
+            ? RedirectToAction(nameof(Runs), new { leagueId, period = range.Query, page = ParsePage(page) })!
+            : RedirectToAction(nameof(League), new { leagueId, period = range.Query })!;
+    });
+
     [HttpPost("/league/{leagueId}/memories/{id:long}/edit")]
     [ValidateAntiForgeryToken]
     public Task<IActionResult> EditMemory(string leagueId, long id, [FromForm] string? content,

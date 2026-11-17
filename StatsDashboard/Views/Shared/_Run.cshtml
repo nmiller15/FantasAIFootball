@@ -28,6 +28,17 @@
         {
             <p>Notes · @Model.Notes</p>
         }
+        @if (Model.StatusAvailable && Model.ExecutedAt is null && Model.Body is null)
+        {
+            <form class="run-note-edit" asp-controller="Dashboard" asp-action="EditRunNotes" asp-route-leagueId="@ViewContext.RouteData.Values["leagueId"]" asp-route-key="@Model.Key" method="post">
+                <input type="hidden" name="period" value="@ViewData["RunPeriod"]">
+                <input type="hidden" name="returnTo" value="@ViewContext.RouteData.Values["action"]">
+                <input type="hidden" name="page" value="@Context.Request.Query["page"]">
+                <label for="run-note-@Model.Key">Note for the run</label>
+                <textarea id="run-note-@Model.Key" name="notes" rows="3" maxlength="2000" placeholder="Optional instructions for this check">@Model.Notes</textarea>
+                <button type="submit">Save note</button>
+            </form>
+        }
         @if (Model.Subject is not null)
         {
             <p>Subject · @Model.Subject</p>
