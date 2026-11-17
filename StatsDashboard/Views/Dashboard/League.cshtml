@@ -54,6 +54,21 @@
     {
         <p class="schedule-error" role="alert">@memoryError</p>
     }
+    @if (Model.Memories.DatabaseExists)
+    {
+        <div class="panel memory-add">
+            <h3>Add a memory</h3>
+            <p>Use the writer's configured username so this memory appears in its next lookup.</p>
+            <form asp-action="AddMemory" asp-route-leagueId="@Model.Id" method="post">
+                <input type="hidden" name="period" value="@Model.Data.Period.Query">
+                <label for="new-memory-user">User ID (writer username)</label>
+                <input id="new-memory-user" name="userId" type="text" maxlength="200" required>
+                <label for="new-memory-content">Memory content</label>
+                <textarea id="new-memory-content" name="content" rows="4" maxlength="10000" required></textarea>
+                <button type="submit">Add memory</button>
+            </form>
+        </div>
+    }
     @if (Model.Memories.Entries.Count == 0)
     {
         <div class="panel memories-empty">@(Model.Memories.DatabaseExists ? "No memories saved for this league yet." : "The memory database or Memories table was not found. Check the writer’s location or set MEMORY_DB_PATH.")</div>

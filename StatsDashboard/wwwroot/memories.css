@@ -21,3 +21,11 @@
 .memory-edit label{font-size:12px;color:#98a9b4}
 .memory-edit textarea{width:100%;border:1px solid #3b5055;border-radius:8px;background:#0c1119;color:#eaf0f4;padding:12px;font:inherit;resize:vertical}
 .memory-edit button{justify-self:start;border:0;border-radius:7px;background:#82e7b8;color:#0c1119;padding:10px 16px;font-weight:700;cursor:pointer}
+.memory-add{padding:22px 26px;margin:16px 0}
+.memory-add h3{margin:0 0 8px}
+.memory-add p{margin:0;color:#98a9b4;font-size:13px;line-height:1.6}
+.memory-add form{margin-top:16px;display:grid;gap:10px}
+.memory-add label{font-size:12px;color:#98a9b4}
+.memory-add input,.memory-add textarea{width:100%;border:1px solid #3b5055;border-radius:8px;background:#0c1119;color:#eaf0f4;padding:12px;font:inherit}
+.memory-add textarea{resize:vertical}
+.memory-add button{justify-self:start;border:0;border-radius:7px;background:#82e7b8;color:#0c1119;padding:10px 16px;font-weight:700;cursor:pointer}

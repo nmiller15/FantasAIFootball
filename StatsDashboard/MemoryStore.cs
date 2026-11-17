@@ -60,6 +60,22 @@ public class MemoryStore(string databasePath)
         return new(entries, true);
     }
 
+    public async Task AddMemoryAsync(string leagueId, string userId, string content)
+    {
+        using var connection = Open(SqliteOpenMode.ReadWrite)
+            ?? throw new InvalidOperationException("The memory database was not found.");
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO Memories (LeagueId, UserId, Content, CreatedAt)
+            VALUES (@league, @user, @content, @createdAt)
+            """;
+        command.Parameters.AddWithValue("@league", leagueId);
+        command.Parameters.AddWithValue("@user", userId);
+        command.Parameters.AddWithValue("@content", content);
+        command.Parameters.AddWithValue("@createdAt", DateTime.Now.ToString("o"));
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task<bool> UpdateMemoryAsync(string leagueId, long id, string content)
     {
         using var connection = Open(SqliteOpenMode.ReadWrite)

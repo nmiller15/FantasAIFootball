@@ -69,6 +69,24 @@ public class DashboardController(StatsStore store, RunStore runs, MemoryStore me
         return RedirectToAction(nameof(League), new { leagueId, period = Period.Parse(period).Query })!;
     });
 
+    [HttpPost("/league/{leagueId}/memories")]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> AddMemory(string leagueId, [FromForm] string? userId,
+        [FromForm] string? content, [FromForm] string? period) => Load(async () =>
+    {
+        if (!KnownLeague(leagueId)) return NotFound();
+        if (string.IsNullOrWhiteSpace(userId) || userId.Length > 200)
+            TempData["MemoryError"] = "User ID must be between 1 and 200 characters.";
+        else if (string.IsNullOrWhiteSpace(content) || content.Length > 10000)
+            TempData["MemoryError"] = "Memory content must be between 1 and 10,000 characters.";
+        else
+        {
+            await memories.AddMemoryAsync(leagueId, userId.Trim(), content.Trim());
+            TempData["MemorySuccess"] = "Memory added.";
+        }
+        return RedirectToAction(nameof(League), new { leagueId, period = Period.Parse(period).Query })!;
+    });
+
     [HttpPost("/league/{leagueId}/memories/{id:long}/delete")]
     [ValidateAntiForgeryToken]
     public Task<IActionResult> DeleteMemory(string leagueId, long id, [FromForm] string? period) => Load(async () =>
